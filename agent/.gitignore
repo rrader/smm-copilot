@@ -1,4 +1,5 @@
 .env
 *.db
-future_posts
-posted_posts
+data/future_posts
+data/posted_posts
+data/post_history.md

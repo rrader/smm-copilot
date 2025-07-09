@@ -63,6 +63,6 @@ def image_preprocessing(image_data: bytes) -> bytes:
 
 
 if __name__ == "__main__":
-    image_data = open("future_posts/2025-07-09_13-34-48/post.png", "rb").read()
+    image_data = open("data/future_posts/2025-07-09_13-34-48/post.png", "rb").read()
     processed_image_data = image_preprocessing(image_data)
-    open("future_posts/2025-07-09_13-34-48/post_processed.png", "wb").write(processed_image_data)
+    open("data/future_posts/2025-07-09_13-34-48/post_processed.png", "wb").write(processed_image_data)

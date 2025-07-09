@@ -1,5 +1,4 @@
 python-telegram-bot
-sqlalchemy
 python-dotenv
 instagrapi
 Pillow>=8.1.1
