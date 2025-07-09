@@ -62,16 +62,18 @@ def sync_instagram_posts():
         with open(post_history_path, "w", encoding="utf-8") as f:
             f.write("# Post History\n\nThis file contains a log of all posts made to Instagram.\n")
         logger.info(f"Created post history file at {post_history_path}")
+    else:
     
-    last_modified_time = os.path.getmtime(post_history_path)
-    if time.time() - last_modified_time < 600:
-        logger.info("Recent sync. Skipping.")
-        return
+        last_modified_time = os.path.getmtime(post_history_path)
+        print(time.time() - last_modified_time)
+        if time.time() - last_modified_time < 600:
+            logger.info("Recent sync. Skipping.")
+            return
 
     # Get existing post shortcodes from the history file
     with open(post_history_path, "r", encoding="utf-8") as f:
         content = f.read()
-    existing_shortcodes = set(re.findall(r"https://www.instagram.com/p/(\w+)", content))
+    existing_shortcodes = set(re.findall(r"https://www.instagram.com/p/([\w\-_]+)", content))
     logger.info(f"Found {len(existing_shortcodes)} existing posts in history.")
 
     # Get all posts from Instagram
@@ -94,6 +96,8 @@ def sync_instagram_posts():
             f.write(f"**URL:** {post['url']}\n")
             
     logger.info(f"Sync complete. Added {len(new_posts)} new posts to history.")
+    # Update the file's modification time to current time
+    Path(post_history_path).touch()
 
 
 def make_post(post_dir_name: str):

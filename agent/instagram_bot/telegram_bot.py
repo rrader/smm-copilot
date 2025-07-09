@@ -3,12 +3,10 @@ import os
 import shutil
 from datetime import datetime
 from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, ContextTypes, filters, ConversationHandler, ReplyKeyboardRemove
+from telegram.ext import Application, CommandHandler, MessageHandler, ContextTypes, filters, ConversationHandler
 
 from .config import TELEGRAM_TOKEN
-from .instagram import sync_instagram_posts, make_post
-from .llm import get_post_idea, generate_post_text, generate_post_image
-from .image_utils import image_preprocessing
+from .instagram import make_post
 from .agentic_flow import agentic_flow
 
 logger = logging.getLogger(__name__)
@@ -24,147 +22,12 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 Available commands:
 /start - Start the bot
 /help - Show this help message
-/sync - Sync Instagram posts
-/list - List synced Instagram posts
-/generate_post - Generate a new post
 /list_future - List scheduled future posts
 /delete_future_post <post_dir_name> - Delete a scheduled future post
 /post <post_dir_name> - Post a future post to Instagram
 """
     await update.message.reply_text(help_text)
 
-async def sync(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    logger.info(f"Received /sync command from {update.effective_user.name}")
-    await update.message.reply_text("Syncing Instagram posts... This may take a while.")
-    try:
-        sync_instagram_posts()
-        await update.message.reply_text("Sync finished.")
-        logger.info("Sync finished successfully.")
-    except Exception as e:
-        logger.error(f"An error occurred during sync: {e}", exc_info=True)
-        await update.message.reply_text(f"An error occurred during sync: {e}")
-
-async def list_posts(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    logger.info(f"Received /list command from {update.effective_user.name}")
-    post_history_path = "data/post_history.md"
-    if not os.path.exists(post_history_path):
-        await update.message.reply_text("No posts found. Use /sync to fetch them.")
-        return
-
-    with open(post_history_path, "r", encoding="utf-8") as f:
-        post_history = f.read()
-
-    posts = post_history.split("\n---\n")[1:]  # Skip header
-    if not posts:
-        await update.message.reply_text("No posts found. Use /sync to fetch them.")
-        return
-
-    message = "Here are the latest posts:\n\n"
-    posts.reverse() # latest first
-
-    for post_str in posts:
-        lines = post_str.strip().split('\n')
-        date = ""
-        caption = ""
-        for line in lines:
-            if line.startswith("**Post Date:**"):
-                date = line.replace("**Post Date:**", "").strip()
-            elif line.startswith("**Caption:**"):
-                caption = line.replace("**Caption:**", "").strip()
-
-        caption_summary = (caption[:75] + '...') if caption and len(caption) > 75 else caption
-        if date:
-            message += f"📅 {date}\n"
-        if caption_summary:
-            message += f"📝 {caption_summary}\n"
-        message += "\n"
-
-    if len(message) > 4096:
-        for i in range(0, len(message), 4096):
-            await update.message.reply_text(message[i:i+4096])
-    else:
-        await update.message.reply_text(message)
-    logger.info(f"Sent {len(posts)} posts to {update.effective_user.name}")
-
-
-async def generate_post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    args_str = ""
-    if context.args:
-        args_str = " ".join(context.args)
-
-    logger.info(f"Received /generate_post command from {update.effective_user.name} with args: {args_str}")
-    await update.message.reply_text("Generating new post... This might take a moment.")
-    
-    try:
-        # # 1. Sync posts
-        await update.message.reply_text("Step 1/5: Syncing recent posts...")
-        sync_instagram_posts()
-        logger.info("Sync complete.")
-
-        # 2. Get context
-        await update.message.reply_text("Step 2/5: Gathering context...")
-        
-        post_history_path = "data/post_history.md"
-        with open(post_history_path, "r", encoding="utf-8") as f:
-            post_history = f.read()
-
-        posts = post_history.split("\n---\n")[1:]
-        posts.reverse() # latest first
-        recent_post_captions = []
-        for post_str in posts[:10]: # last 10 posts
-            lines = post_str.strip().split('\n')
-            date = ""
-            caption = ""
-            for line in lines:
-                if line.startswith("**Post Date:**"):
-                    date = line.replace("**Post Date:**", "").strip()
-                elif line.startswith("**Caption:**"):
-                    caption = line.replace("**Caption:**", "").strip()
-            if caption:
-                recent_post_captions.append({"caption": caption, "date": date})
-        
-        with open("instagram_bot/content_plan.md", "r") as f:
-            content_plan = f.read()
-        logger.info("Context gathered.")
-
-        # 3. Generate idea
-        await update.message.reply_text("Step 3/5: Generating post idea with AI...")
-        idea = get_post_idea(content_plan, recent_post_captions, args_str)
-        await update.message.reply_text(f"Generated Idea:\n{idea}")
-
-        # 4. Generate text
-        await update.message.reply_text("Step 4/5: Generating full post text...")
-        post_text = generate_post_text(idea)
-        
-        # 5. Generate image
-        await update.message.reply_text("Step 5/5: Generating post image...")
-        image_data = generate_post_image(post_text)
-        
-        # Preprocess the image
-        processed_image_data = image_preprocessing(image_data)
-
-        # 6. Save the post
-        post_date = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        post_dir = f"data/future_posts/{post_date}"
-        os.makedirs(post_dir, exist_ok=True)
-        
-        with open(f"{post_dir}/post.txt", "w") as f:
-            f.write(post_text)
-            
-        with open(f"{post_dir}/post.png", "wb") as f:
-            f.write(image_data)
-
-        with open(f"{post_dir}/post_processed.png", "wb") as f:
-            f.write(processed_image_data)
-        
-        logger.info(f"Post saved to {post_dir}")
-        await update.message.reply_text(f"✅ Post generated and saved!\n\nLocation: `{post_dir}`\n\n**Post Text:**\n{post_text}")
-        await update.message.reply_photo(photo=f"{post_dir}/post_processed.png")
-
-
-    except Exception as e:
-        logger.error(f"An error occurred during post generation: {e}", exc_info=True)
-        await update.message.reply_text(f"An error occurred: {e}")
 
 async def list_future_posts(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.info(f"Received /list_future command from {update.effective_user.name}")
@@ -213,6 +76,7 @@ async def delete_future_post(update: Update, context: ContextTypes.DEFAULT_TYPE)
         logger.error(f"Error deleting future post directory {post_dir_path}: {e}", exc_info=True)
         await update.message.reply_text(f"An error occurred while deleting the post: {e}")
 
+
 async def post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.info(f"Received /post command from {update.effective_user.name}")
     
@@ -243,10 +107,13 @@ async def post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.info(f"Received message from {update.effective_user.name}: {update.message.text}")
 
-    async def reply_to_message(message: str) -> None:
+    async def reply_message(message: str) -> None:
         await update.message.reply_text(message)
+    
+    async def reply_photo(photo_path: str) -> None:
+        await update.message.reply_photo(photo=open(photo_path, "rb"))
 
-    await agentic_flow(update.message.text, context.chat_data, reply_to_message)
+    await agentic_flow(update.message.text, context.chat_data, reply_message, reply_photo)
     # await update.message.reply_text("Hello! I am your Instagram bot. Use /help to see the available commands.")
 
 
@@ -255,9 +122,7 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     user = update.message.from_user
     logger.info("User %s canceled the conversation.", user.first_name)
 
-    await update.message.reply_text(
-        "Bye! I hope we can talk again some day.", reply_markup=ReplyKeyboardRemove()
-    )
+    await update.message.reply_text("Bye! I hope we can talk again some day.")
 
     return ConversationHandler.END
 
@@ -266,20 +131,17 @@ def run_bot():
     application = Application.builder().token(TELEGRAM_TOKEN).build()
 
     application.add_handler(ConversationHandler(
-        entry_points=[CommandHandler("start", start)],
-        states={
-            "waiting_for_message": [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message)],
-        },
+        entry_points=[MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message)],  #[CommandHandler("start", start)],
+        # states={
+        #     "waiting_for_message": [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message)],
+        # },
+        states={},
         fallbacks=[CommandHandler("cancel", cancel)],
     ))
     application.add_handler(CommandHandler("help", help_command))
 
-    # application.add_handler(CommandHandler("start", start))
-    # application.add_handler(CommandHandler("sync", sync))
-    # application.add_handler(CommandHandler("list", list_posts))
-    # application.add_handler(CommandHandler("generate_post", generate_post))
-    # application.add_handler(CommandHandler("list_future", list_future_posts))
-    # application.add_handler(CommandHandler("delete_future_post", delete_future_post))
-    # application.add_handler(CommandHandler("post", post))
+    application.add_handler(CommandHandler("list_future", list_future_posts))
+    application.add_handler(CommandHandler("delete_future_post", delete_future_post))
+    application.add_handler(CommandHandler("post", post))
 
     application.run_polling()
