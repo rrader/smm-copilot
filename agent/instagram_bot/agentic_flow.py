@@ -194,8 +194,8 @@ async def agentic_flow(text: str, context: dict, reply_message, reply_photo):
             model="gpt-4o-mini",
             messages=context['chat_history'],
             tools=[
-                {"type": "function", "function": {"name": "get_history", "description": "Retrieves the history of previously published posts."}},
-                {"type": "function", "function": {"name": "read_data_file", "description": "Reads the content of a specified file from the 'data' directory. Useful for accessing the md files, content plan or other data files. Only files directly in 'data' are allowed (no subdirectories).", "parameters": {"type": "object", "properties": {"file_name": {"type": "string", "description": "The name of the file to read from the 'data' directory."}}, "required": ["file_name"]}}},
+                {"type": "function", "function": {"name": "get_history", "description": "Retrieves the history of previously published posts. Never call this tool unless you are sure you need it."}},
+                {"type": "function", "function": {"name": "read_data_file", "description": "Reads the content of a specified file. Useful for accessing the .md files, content plan or other files. Only files directly in 'data' are allowed (no subdirectories).", "parameters": {"type": "object", "properties": {"file_name": {"type": "string", "description": "The name of the file to read from the 'data' directory."}}, "required": ["file_name"]}}},
                 {"type": "function", "function": {"name": "generate_post_image", "description": "Generates an image for an Instagram post based on the post text. Response contains the path to the image file.", "parameters": {"type": "object", "properties": {"image_prompt": {"type": "string", "description": "The prompt for the image generation model."}}, "required": ["image_prompt"]}}},
                 {"type": "function", "function": {"name": "save_post_draft", "description": "Saves a generated post (idea, text, and image) as a draft for review.", "parameters": {"type": "object", "properties": {"idea": {"type": "string"}, "post_text": {"type": "string"}, "image_path": {"type": "string"}}, "required": ["idea", "post_text", "image_path"]}}},
                 {"type": "function", "function": {"name": "publish_post", "description": "Publishes a staged post draft to Instagram. Never call this tool if you didn't save the post draft first. Also, never call this tool if you don't have an explicit confirmation from user that they want to publish the post.", "parameters": {"type": "object", "properties": {"post_directory_name": {"type": "string", "description": "The name of the post directory inside 'data/future_posts' to publish."}}, "required": ["post_directory_name"]}}},
@@ -254,6 +254,7 @@ async def agentic_flow(text: str, context: dict, reply_message, reply_photo):
             # If no tool calls, just send the response
             response = response_message.content
         
+        print(">>>>>", response)
         response = json.loads(response)
         if 'can_continue' not in response or not response['can_continue']:
             await reply_message(response['text_response'])
