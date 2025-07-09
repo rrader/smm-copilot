@@ -8,10 +8,14 @@ logger = logging.getLogger(__name__)
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 
-def get_post_idea(content_plan: str, recent_posts: list[str]) -> str:
+def get_post_idea(content_plan: str, recent_posts: list[str], args_str: str) -> str:
     logger.info("Generating post idea with OpenAI...")
     
     recent_posts_str = "\n".join(f"- {post}" for post in recent_posts)
+
+    additional_context = ""
+    if args_str:
+        additional_context = f"**Additional context:**\n{args_str}"
 
     prompt = f"""
     Based on the following content plan and the list of recent posts, please suggest a topic and a brief description for the next Instagram post.
@@ -22,6 +26,8 @@ def get_post_idea(content_plan: str, recent_posts: list[str]) -> str:
 
     **Recent Posts (captions):**
     {recent_posts_str}
+
+    {additional_context}
 
     Please provide a concise idea for the next post, including the category.
     Format your response as:
@@ -53,7 +59,7 @@ def generate_post_text(post_idea: str) -> str:
     {post_idea}
 
     Please provide only the text for the post, without any extra titles or explanations.
-    No markdown, plain text, you can use emoji (but not too many), newlines, hashtags. Avoid long dashes. Use english quotation marks.
+    Don't use markdown. Output only plain text, however you can use emoji (but not too many), newlines, hashtags. Avoid long dashes. Use english quotation marks.
     """
 
     response = client.chat.completions.create(
