@@ -1,5 +1,6 @@
 import logging
 import os
+import shutil
 from datetime import datetime
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
@@ -13,7 +14,21 @@ logger = logging.getLogger(__name__)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.info(f"Received /start command from {update.effective_user.name}")
-    await update.message.reply_text("Hello! I am your Instagram bot. Use /sync to fetch posts, /list to see them, /generate_post to create a new one, or /list_future to see scheduled posts.")
+    await update.message.reply_text("Hello! I am your Instagram bot. Use /help to see the available commands.")
+
+async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    logger.info(f"Received /help command from {update.effective_user.name}")
+    help_text = """
+Available commands:
+/start - Start the bot
+/help - Show this help message
+/sync - Sync Instagram posts
+/list - List synced Instagram posts
+/generate_post - Generate a new post
+/list_future - List scheduled future posts
+/delete_future_post <post_dir_name> - Delete a scheduled future post
+"""
+    await update.message.reply_text(help_text)
 
 async def sync(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.info(f"Received /sync command from {update.effective_user.name}")
@@ -127,15 +142,40 @@ async def list_future_posts(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             else:
                 await update.message.reply_text(f"Post: {post_dir_name} (no image found)")
 
+async def delete_future_post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    logger.info(f"Received /delete_future_post command from {update.effective_user.name}")
+    
+    if not context.args:
+        await update.message.reply_text("Please provide the post directory name to delete.\nUsage: /delete_future_post <post_dir_name>")
+        return
+
+    post_dir_name = context.args[0]
+    future_posts_dir = "future_posts"
+    post_dir_path = os.path.join(future_posts_dir, post_dir_name)
+
+    if not os.path.exists(post_dir_path) or not os.path.isdir(post_dir_path):
+        await update.message.reply_text(f"Future post '{post_dir_name}' not found.")
+        return
+
+    try:
+        shutil.rmtree(post_dir_path)
+        logger.info(f"Deleted future post directory: {post_dir_path}")
+        await update.message.reply_text(f"✅ Future post '{post_dir_name}' has been deleted.")
+    except Exception as e:
+        logger.error(f"Error deleting future post directory {post_dir_path}: {e}", exc_info=True)
+        await update.message.reply_text(f"An error occurred while deleting the post: {e}")
+
 
 def run_bot():
     logger.info("Starting telegram bot polling...")
     application = Application.builder().token(TELEGRAM_TOKEN).build()
 
     application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("sync", sync))
     application.add_handler(CommandHandler("list", list_posts))
     application.add_handler(CommandHandler("generate_post", generate_post))
     application.add_handler(CommandHandler("list_future", list_future_posts))
+    application.add_handler(CommandHandler("delete_future_post", delete_future_post))
 
     application.run_polling()

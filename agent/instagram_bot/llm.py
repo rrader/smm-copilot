@@ -53,6 +53,7 @@ def generate_post_text(post_idea: str) -> str:
     {post_idea}
 
     Please provide only the text for the post, without any extra titles or explanations.
+    No markdown, plain text, you can use emoji (but not too many), newlines, hashtags. Avoid long dashes. Use english quotation marks.
     """
 
     response = client.chat.completions.create(
