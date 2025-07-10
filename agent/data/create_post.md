@@ -1,62 +1,42 @@
-## Step-by-Step Flow of creating a new post
+# Create Post Guide (Agent Instructions)
 
-Please, carefully, strictly follow this guide, unless a kitten will die! Step by step.
+This guide defines the step-by-step process for generating a new Instagram post draft. Follow each step in order. Do not skip or combine steps. Do not publish any posts; only generate and save drafts.
 
-### Step 1: Sync with Post History, read content plan
+## Step 1: Sync with Post History and Read Content Plan
 
-Once Step 1 is done, you can continue to step 2 to generate a post idea.
+1. Sync post history to ensure recent posts are available. Do this only once per session.
+2. Read `content_plan.md` for categories, frequencies, and requirements.
 
-#### 1.1 Sync with Post History
-Sync the history - it makes sure we have all the recent posts from an account. The posts history ensures the content is fresh, relevant, and avoids repetition. Don't do that more than once.
-User input: no user input
-Output: no output
+## Step 2: Generate Post Idea
 
-#### 1.2 Read content plan
-Read the content plan: Never move forward if you didn't read the `content_plan.md` yet.
+- Based on the content plan and recent posts, generate a topic and brief description for the next post.
+- Ensure the idea is varied and not a recent repeat.
+- Output format:
 
-User input: no user input
-Output: no output
-
-### Step 2: Generate a Post Idea
-
-Based on the `content_plan.md` and the list of recent posts, please suggest a topic and a brief description for the next Instagram post. You must suggest one topic yourself, don't ask user.
-The goal is to create a varied and engaging content feed, following the specified categories and frequencies. Posts should be as variable as possible, don't ever repeat the post from history that was recently posted.
-
-Please provide a concise idea for the next post, including the category.
-Format your response as:
 Категорія: <Category Name>
 Ідея: <A clear, concise post idea>
 
-### Step 3: Generate Post Text (Caption)
+## Step 3: Generate Post Text (Caption)
 
-- **Action:**  Based on the post idea, please write a complete, engaging, and ready-to-publish Instagram post in Ukrainian. Include relevant hashtags as specified in the content plan, in both English and Ukrainian.
+- Write a complete, engaging Instagram post in Ukrainian, including relevant hashtags (English and Ukrainian) as per the content plan.
+- Output only the post text (no titles, explanations, or markdown). Use plain text, emoji (sparingly), and newlines.
 
-- **Context:**
+## Step 4: Generate Image Prompt
 
-Please provide only the text for the post, without any extra titles or explanations.
-Don't use markdown. Output only plain text, however you can use emoji (but not too many), newlines, hashtags. Avoid long dashes. Use english quotation marks.
+- Create a detailed prompt in English for an image generation model, based on the post text.
+- The prompt should describe a photorealistic, warm, nostalgic, professional image.
+- Do not include any text in the image.
+- Output only the prompt.
 
-- **Output:** A complete post caption.
+## Step 5: Save Post Draft
 
-### Step 4: Generate Image
+- Save the post draft with all required data (text and image).
+- Output the directory name of the saved draft. This is the post ID.
+- Do not publish the post.
 
-    Based on the Instagram post text, create a detailed prompt for an image generation model to create a visually appealing and relevant image.
-    The image should be photorealistic, high-quality, and suitable for an Instagram feed.
-    The prompt for the model should be in English.
+---
 
-    **Instructions for the prompt:**
-    1.  Capture the essence of the text
-    2.  Describe the style: photorealistic, warm, nostalgic, and professional.
-    3.  The final output should be just the prompt for the image generation model.
-    4.  Never put any text on image
-    
-- **Output:** An image file ready for posting.
-
-### Step 5: Save the post draft (save_post_draft)
-
-- **Action:** Save the post draft with all the required data
-- **Context:**
-    - Post text and image must be ready
-- **Output:** A directory name with the post draft, show it to the user, it's an important ID of the post.
-
-Never publish the post on this step!
+**Summary:**
+- Always follow steps in order.
+- Only output or save as instructed.
+- Never publish content.

@@ -1,118 +1,74 @@
-# Step-by-Step Flow of Weekly Planning Guide
+# Weekly Planning Guide (Agent Instructions)
 
-Please, carefully, strictly follow this guide, unless a kitten will die! Step by step.
-
-This guide outlines the step-by-step process for creating a weekly content schedule.
-
-Never save temporary files, until you finalized the generated schedule json file!
-
-We are just planning posts, saving drafts and storing the schedule json file. You never publish generated posts!
+This guide defines the step-by-step process for creating a weekly content schedule. Follow each step in order. Do not skip or combine steps. Do not publish any posts; only plan and save drafts and schedules.
 
 ## Step 1: Review Content Plan and History
 
-### 1 Read Content Plan
-First, read the content plan from `content_plan.md` to understand:
-- Content categories and their frequencies
-- Optimal posting times
-- Content mix requirements
+1. Read `content_plan.md` to get:
+   - Content categories and frequencies
+   - Posting times
+   - Content mix requirements
+2. Review the previous schedule to ensure variety and proper spacing of content.
 
-Strictly follow the content plan for the following steps! Never do more than it's stated in the content plan.
+## Step 2: Plan the Week
 
-### 2 Review Recent Schedule
-Check the previous schedule to ensure variety and proper spacing of content.
-
-### 3 Plan the week
-
-Output the plan for the week, according to the content plan, in the following format:
+- Generate a weekly plan based on the content plan and recent schedule.
+- Output the plan in this format (do not save):
 
   monday:
-    - post category about cats
-    - story about dogs
+    - post category about X
+    - story about Y
   tuesday:
-    - nothing  (e.g. some day there may be nothing)
-  wednesday:
-    - story category about something (some day there may be only story)
+    - nothing
   ...
 
-Never save this file, this is not a final step. Just output this to the user.
+- Do not proceed until the plan is output.
 
-### 4 Generate Weekly Posts
+## Step 3: Generate Weekly Post and Story Drafts
 
-Using the generated plan, one by one, generate all post drafts. When you're done, we will continue to build weekly schedule.
-
-For each item:
-
-1. Read `create_post.md` for post creation guidelines, or `create_story.md` for stories.
-2. Generate post/story content following the category
-3. Never even suggest to publish the post! We are generating drafts, and it is the final goal. No publishing should ever happen!
-
-Key posting considerations:
-- Vary content categories throughout week
-- Space out similar content types
-- Target peak engagement times per analytics
-- Include mix of educational, process and promotional content
-- Ensure proper hashtag usage per post type
-
-Output with a list of post and directories:
+- For each planned item:
+  1. If a post, follow `create_post.md`.
+  2. If a story, follow `create_story.md`.
+  3. Generate the draft and save it. Do not publish.
+- Output a list of generated post and story directories with their planned schedule (do not save):
 
 {
-    "posts": [{
-        "post_directory": "post_1_2_3",
-        "schedule": "monday 15:00"
-    },
-    {
-        "post_directory": "post_15_17",
-        "schedule": "wednesday 18:00"
-    }],
-    "stories": [{
-        "story_directory": "story_1_2_3",
-        "schedule": "monday 15:00"
-    },
-    {
-        "story_directory": "story_15_17",
-        "schedule": "wednesday 18:00"
-    }]
+  "posts": [
+    {"post_directory": "post_1_2_3", "schedule": "monday 15:00"},
+    ...
+  ],
+  "stories": [
+    {"story_directory": "story_1_2_3", "schedule": "monday 15:00"},
+    ...
+  ]
 }
 
-Never save this file, this is not a final step.
+- Do not proceed until all drafts are generated and output.
 
-## 5: Generate Weekly Schedule
+## Step 4: Save Weekly Schedule
 
-When all post drafts are generated, we are ready to save the `schedule/generated.json` file. Don't save generated.json file until you have created post drafts, and you know post ids (directory names) - continue previous step in loop until all posts are generated - and then continue with this step.
+- When all drafts are ready, create the schedule file `schedule/generated.json` in this format:
 
-Using the generated post/stories list, create a schedule that:
-- Maintains consistent posting times
-- Distributes content types appropriately
-- Aligns with audience activity patterns
-- Includes both posts and stories
-
-The schedule should be saved in JSON format at `schedule/generated.json` (under schedule/ directory!) with:
-- Task name (task_post or task_story) (never ever call publish tools! we are just saving the json file)
-- Schedule details (day and time)
-- Task arguments (content directory)
-
-Example schedule format:
-
-schedule/generated.json:
 [
-    {
-        "task_name": "task_post",
-        "schedule": {
-            "unit": "weeks",
-            "day": "monday",
-            "at": "12:00"
-        },
-        "task_args": {"post_directory_name": "2025-07-10_10-00-00"}
-    },
-    {
-        "task_name": "task_story",
-        "schedule": {
-            "unit": "weeks",
-            "day": "tuesday",
-            "at": "15:00"
-        },
-        "task_args": {"story_directory_name": "2025-07-10_10-00-00"}
-    }
+  {
+    "task_name": "task_post",
+    "schedule": {"unit": "weeks", "day": "monday", "at": "12:00"},
+    "task_args": {"post_directory_name": "..."}
+  },
+  {
+    "task_name": "task_story",
+    "schedule": {"unit": "weeks", "day": "tuesday", "at": "15:00"},
+    "task_args": {"story_directory_name": "..."}
+  }
 ]
 
-Save it using the save_data_file function to the file.
+- Save this file using the save_data_file function.
+- Do not call any publish or posting tools.
+
+---
+
+**Summary:**
+- Always follow steps in order.
+- Only output or save as instructed.
+- Never publish content.
+- Wait for all drafts before saving the schedule.

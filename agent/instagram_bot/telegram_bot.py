@@ -222,7 +222,7 @@ def run_bot():
     application.add_handler(ConversationHandler(
         entry_points=[CommandHandler("start", start)],
         states={
-            "waiting_for_message": MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message),
+            "waiting_for_message": [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message)],
         },
         fallbacks=[CommandHandler("cancel", cancel)],
     ))

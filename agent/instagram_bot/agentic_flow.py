@@ -160,29 +160,24 @@ async def read_data_file(file_name: str, reply_message, reply_photo):
         logger.error(f"Error reading data file '{file_name}': {e}", exc_info=True)
         return f"An error occurred while reading the file: {e}"
 
-async def write_data_file(file_name: str, content: str, reply_message, reply_photo):
+async def save_schedule(schedule_data: list, reply_message, reply_photo):
     """
-    Writes content to a specified file in the 'data' directory.
-    This is useful for creating or updating documents like the content plan.
-    The path is relative to the 'data' directory. Subdirectories are allowed.
+    Saves the generated schedule to the 'data/schedule/generated.json' file.
+    This tool should be used to update the posting schedule.
+    The input should be a list of schedule entries.
     """
     try:
-        # Security: Prevent directory traversal.
-        if ".." in file_name or "\\" in file_name:
-            logger.warning(f"Attempted directory traversal: {file_name}")
-            return "Error: Invalid file name. Directory traversal is not allowed."
-
-        file_path = Path("data") / file_name
+        schedule_path = Path("data/schedule/generated.json")
+        schedule_path.parent.mkdir(parents=True, exist_ok=True)
         
-        # Create parent directories if they don't exist
-        file_path.parent.mkdir(parents=True, exist_ok=True)
-        
-        logger.info(f"Writing data file: {file_name}")
-        file_path.write_text(content, encoding="utf-8")
-        return f"Successfully wrote to file '{file_name}' in the data directory."
+        with open(schedule_path, 'w', encoding='utf-8') as f:
+            json.dump(schedule_data, f, indent=4)
+            
+        logger.info(f"Schedule saved to {schedule_path}")
+        return f"Successfully saved schedule to {schedule_path}."
     except Exception as e:
-        logger.error(f"Error writing data file '{file_name}': {e}", exc_info=True)
-        return f"An error occurred while writing the file: {e}"
+        logger.error(f"Error saving schedule: {e}", exc_info=True)
+        return f"An error occurred while saving the schedule: {e}"
 
 # --- Agent Dialogue Flow ---
 
@@ -193,7 +188,6 @@ async def weekly_planning(reply_message, reply_photo, auto_mode: bool = False, c
     weekly_planning_md = (Path(__file__).parent.parent / "data/weekly_planning_guide.md").read_text(encoding="utf-8")
     await agentic_flow(
         weekly_planning_md, context, reply_message, reply_photo, auto_mode=auto_mode, 
-        tools=["get_history", "read_data_file", "write_data_file", "generate_post_image", "save_post_draft"],
         model="gpt-4o"
     )
 
@@ -201,7 +195,7 @@ async def weekly_planning(reply_message, reply_photo, auto_mode: bool = False, c
 TOOLS = {
     "get_history": {"type": "function", "function": {"name": "get_history", "description": "Retrieves the history of previously published posts. Never call this tool unless you are sure you need it."}},
     "read_data_file": {"type": "function", "function": {"name": "read_data_file", "description": "Reads the content of a specified file. Useful for accessing the .md files, content plan or other files. Only files directly in 'data' are allowed (no subdirectories).", "parameters": {"type": "object", "properties": {"file_name": {"type": "string", "description": "The name of the file to read from the 'data' directory."}}, "required": ["file_name"]}}},
-    "write_data_file": {"type": "function", "function": {"name": "write_data_file", "description": "Writes content to a specified file in the 'data' directory. Useful for creating or updating the content plan, schedule or other files.", "parameters": {"type": "object", "properties": {"file_name": {"type": "string", "description": "The name of the file to write to in the 'data' directory."}, "content": {"type": "string", "description": "The content to write to the file."}}, "required": ["file_name", "content"]}}},
+    "save_schedule": {"type": "function", "function": {"name": "save_schedule", "description": "Saves the generated schedule to 'data/schedule/generated.json'.", "parameters": {"type": "object", "properties": {"schedule_data": {"type": "array", "items": {"type": "object", "properties": {"task_name": {"type": "string"}, "schedule": {"type": "object", "properties": {"unit": {"type": "string"}, "day": {"type": "string"}, "at": {"type": "string"}}}, "task_args": {"type": "object"}}}, "description": "A list of schedule entries to save. Put schedule data in the following format: [{\"task_name\": \"task_post\", \"schedule\": {\"unit\": \"weeks\", \"day\": \"monday\", \"at\": \"12:00\"}, \"task_args\": {\"post_directory_name\": \"...\"}}, {\"task_name\": \"task_story\", \"schedule\": {\"unit\": \"weeks\", \"day\": \"tuesday\", \"at\": \"15:00\"}, \"task_args\": {\"story_directory_name\": \"...\"}}]"}}, "required": ["schedule_data"]}}},
     "generate_post_image": {"type": "function", "function": {"name": "generate_post_image", "description": "Generates an image for an Instagram post based on the post text. Response contains the path to the image file.", "parameters": {"type": "object", "properties": {"image_prompt": {"type": "string", "description": "The prompt for the image generation model."}}, "required": ["image_prompt"]}}},
     "save_post_draft": {"type": "function", "function": {"name": "save_post_draft", "description": "Saves a generated post (idea, text, and image) as a draft for review.", "parameters": {"type": "object", "properties": {"idea": {"type": "string"}, "post_text": {"type": "string"}, "image_path": {"type": "string"}}, "required": ["idea", "post_text", "image_path"]}}},
     "publish_post": {"type": "function", "function": {"name": "publish_post", "description": "Publishes a staged post draft to Instagram. Never call this tool if you didn't save the post draft first. Also, never call this tool if you don't have an explicit confirmation from user that they want to publish the post.", "parameters": {"type": "object", "properties": {"post_directory_name": {"type": "string", "description": "The name of the post directory inside 'data/future_posts' to publish."}}, "required": ["post_directory_name"]}}}
@@ -259,7 +253,7 @@ async def agentic_flow(text: str, context: dict, reply_message, reply_photo, aut
             available_tools = {
                 "get_history": get_history,
                 "read_data_file": read_data_file,
-                "write_data_file": write_data_file,
+                "save_schedule": save_schedule,
                 "generate_post_image": generate_post_image,
                 "save_post_draft": save_post_draft,
                 "publish_post": publish_post
