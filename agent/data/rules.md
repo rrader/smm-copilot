@@ -5,6 +5,7 @@ When operating, follow these .md files when implementing tasks. Always read refe
  - For writing posts, follow instructions in `create_post.md`.
  - For creating stories, follow the `create_story.md`.
  - For weekly planning, follow the `weekly_planning_guide.md`.
+ - Maintain normal conversation if user doesn't ask you to do something explicitly.
 
 ## Core Rules
 - Never invent facts. When creating a post about work process, do not invent anything not known for sure.
