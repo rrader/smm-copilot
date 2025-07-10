@@ -2,6 +2,7 @@ import logging
 import os
 import shutil
 from datetime import datetime
+from functools import wraps
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, ContextTypes, filters, ConversationHandler
 
@@ -11,16 +12,37 @@ from .agentic_flow import agentic_flow
 
 logger = logging.getLogger(__name__)
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    logger.info(f"Received /start command from {update.effective_user.name}")
-    await update.message.reply_text("Hello! I am your Instagram bot. Use /help to see the available commands.")
-    return "waiting_for_message"
+def admin_only(func):
+    @wraps(func)
+    async def wrapped(update: Update, context: ContextTypes.DEFAULT_TYPE, *args, **kwargs):
+        admin_ids_str = os.getenv("ADMIN_TELEGRAM_ID")
+        if not admin_ids_str:
+            logger.warning("ADMIN_TELEGRAM_ID environment variable not set.")
+            await update.message.reply_text("You are not authorized to use this bot.")
+            return
 
+        admin_ids = [admin_id.strip() for admin_id in admin_ids_str.split(',')]
+        user_id = str(update.effective_user.id)
+
+        if user_id not in admin_ids:
+            logger.warning(f"Unauthorized access attempt from {update.effective_user.name} ({user_id}).")
+            await update.message.reply_text("You are not authorized to use this bot.")
+            return
+        
+        return await func(update, context, *args, **kwargs)
+    return wrapped
+
+
+async def myid(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Returns the user's chat ID."""
+    await update.message.reply_text(f"Your chat ID is: {update.effective_chat.id}")
+
+
+@admin_only
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.info(f"Received /help command from {update.effective_user.name}")
     help_text = """
 Available commands:
-/start - Start the bot
 /help - Show this help message
 /list_future - List scheduled future posts
 /delete_future_post <post_dir_name> - Delete a scheduled future post
@@ -29,6 +51,7 @@ Available commands:
     await update.message.reply_text(help_text)
 
 
+@admin_only
 async def list_future_posts(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.info(f"Received /list_future command from {update.effective_user.name}")
     future_posts_dir = "data/future_posts"
@@ -53,6 +76,7 @@ async def list_future_posts(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             else:
                 await update.message.reply_text(f"Post: {post_dir_name} (no image found)")
 
+@admin_only
 async def delete_future_post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.info(f"Received /delete_future_post command from {update.effective_user.name}")
     
@@ -77,6 +101,7 @@ async def delete_future_post(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await update.message.reply_text(f"An error occurred while deleting the post: {e}")
 
 
+@admin_only
 async def post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.info(f"Received /post command from {update.effective_user.name}")
     
@@ -104,6 +129,7 @@ async def post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await update.message.reply_text(f"An error occurred while posting: {e}")
 
 
+@admin_only
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.info(f"Received message from {update.effective_user.name}: {update.message.text}")
 
@@ -117,6 +143,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     # await update.message.reply_text("Hello! I am your Instagram bot. Use /help to see the available commands.")
 
 
+@admin_only
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Cancels and ends the conversation."""
     user = update.message.from_user
@@ -139,6 +166,7 @@ def run_bot():
         fallbacks=[CommandHandler("cancel", cancel)],
     ))
     application.add_handler(CommandHandler("help", help_command))
+    application.add_handler(CommandHandler("myid", myid))
 
     application.add_handler(CommandHandler("list_future", list_future_posts))
     application.add_handler(CommandHandler("delete_future_post", delete_future_post))

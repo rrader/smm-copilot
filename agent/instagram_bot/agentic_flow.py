@@ -10,7 +10,6 @@ from .config import OPENAI_API_KEY
 from . import instagram
 from . import image_utils
 
-
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -46,10 +45,10 @@ def llm_generate_post_image(image_prompt: str) -> bytes:
     """Generates an image for the post and returns it as bytes."""
     try:
         response = client.images.generate(
-            model="gpt-image-1",
+            model="dall-e-3",
             prompt=image_prompt,
             size="1024x1024",
-            quality="low",
+            quality="standard",
             n=1
         )
         image_data = b64decode(response.data[0].b64_json)
@@ -161,6 +160,27 @@ async def read_data_file(file_name: str, reply_message, reply_photo):
         logger.error(f"Error reading data file '{file_name}': {e}", exc_info=True)
         return f"An error occurred while reading the file: {e}"
 
+async def write_data_file(file_name: str, content: str, reply_message, reply_photo):
+    """
+    Writes content to a specified file in the 'data' directory.
+    This is useful for creating or updating documents like the content plan.
+    The path is relative to the 'data' directory. Subdirectories are not allowed.
+    """
+    try:
+        # Security: Prevent directory traversal.
+        if ".." in file_name or "/" in file_name or "\\" in file_name:
+            logger.warning(f"Attempted directory traversal: {file_name}")
+            return "Error: Invalid file name. Subdirectories are not allowed."
+
+        file_path = Path("data") / file_name
+        
+        logger.info(f"Writing data file: {file_name}")
+        file_path.write_text(content, encoding="utf-8")
+        return f"Successfully wrote to file '{file_name}' in the data directory."
+    except Exception as e:
+        logger.error(f"Error writing data file '{file_name}': {e}", exc_info=True)
+        return f"An error occurred while writing the file: {e}"
+
 # --- Agent Dialogue Flow ---
 
 
@@ -196,9 +216,11 @@ async def agentic_flow(text: str, context: dict, reply_message, reply_photo):
             tools=[
                 {"type": "function", "function": {"name": "get_history", "description": "Retrieves the history of previously published posts. Never call this tool unless you are sure you need it."}},
                 {"type": "function", "function": {"name": "read_data_file", "description": "Reads the content of a specified file. Useful for accessing the .md files, content plan or other files. Only files directly in 'data' are allowed (no subdirectories).", "parameters": {"type": "object", "properties": {"file_name": {"type": "string", "description": "The name of the file to read from the 'data' directory."}}, "required": ["file_name"]}}},
+                {"type": "function", "function": {"name": "write_data_file", "description": "Writes content to a specified file in the 'data' directory. Useful for creating or updating the content plan.", "parameters": {"type": "object", "properties": {"file_name": {"type": "string", "description": "The name of the file to write to in the 'data' directory."}, "content": {"type": "string", "description": "The content to write to the file."}}, "required": ["file_name", "content"]}}},
                 {"type": "function", "function": {"name": "generate_post_image", "description": "Generates an image for an Instagram post based on the post text. Response contains the path to the image file.", "parameters": {"type": "object", "properties": {"image_prompt": {"type": "string", "description": "The prompt for the image generation model."}}, "required": ["image_prompt"]}}},
                 {"type": "function", "function": {"name": "save_post_draft", "description": "Saves a generated post (idea, text, and image) as a draft for review.", "parameters": {"type": "object", "properties": {"idea": {"type": "string"}, "post_text": {"type": "string"}, "image_path": {"type": "string"}}, "required": ["idea", "post_text", "image_path"]}}},
                 {"type": "function", "function": {"name": "publish_post", "description": "Publishes a staged post draft to Instagram. Never call this tool if you didn't save the post draft first. Also, never call this tool if you don't have an explicit confirmation from user that they want to publish the post.", "parameters": {"type": "object", "properties": {"post_directory_name": {"type": "string", "description": "The name of the post directory inside 'data/future_posts' to publish."}}, "required": ["post_directory_name"]}}},
+                {"type": "function", "function": {"name": "schedule_onetime_task", "description": "Schedules a one-time task to be executed at a specific time.", "parameters": {"type": "object", "properties": {"execution_time": {"type": "string", "description": "The execution time in ISO 8601 format (e.g., 2025-12-31T23:59:59Z)."}, "task_name": {"type": "string", "description": "The name of the task to be executed."}, "task_args": {"type": "object", "description": "A dictionary of arguments to be passed to the task."}}, "required": ["execution_time", "task_name", "task_args"]}}},
             ],
             tool_choice="auto",
         )
@@ -212,9 +234,11 @@ async def agentic_flow(text: str, context: dict, reply_message, reply_photo):
             available_tools = {
                 "get_history": get_history,
                 "read_data_file": read_data_file,
+                "write_data_file": write_data_file,
                 "generate_post_image": generate_post_image,
                 "save_post_draft": save_post_draft,
                 "publish_post": publish_post,
+                "schedule_onetime_task": schedule_onetime_task_tool,
             }
 
             for tool_call in tool_calls:
@@ -268,6 +292,7 @@ async def agentic_flow(text: str, context: dict, reply_message, reply_photo):
         await reply_message("I'm sorry, but an unexpected error occurred. Please try again.")
 
     return context
+
 
 
 if __name__ == "__main__":
