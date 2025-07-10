@@ -1,6 +1,6 @@
 ## Step-by-Step Flow of creating a new post
 
-Please, carefully, strictly follow this guide, unless a kitten will die! Step by step. Ask user for required information and ask for confirmation, unless you are sure you have all the information to proceed.
+Please, carefully, strictly follow this guide, unless a kitten will die! Step by step.
 
 ### Step 1: Sync with Post History, read content plan
 
@@ -12,7 +12,7 @@ User input: no user input
 Output: no output
 
 #### 1.2 Read content plan
-Read the content plan: Never move forward if you didn't read the `content_plan.md` yet. In the same time, 
+Read the content plan: Never move forward if you didn't read the `content_plan.md` yet.
 
 User input: no user input
 Output: no output
@@ -38,8 +38,6 @@ Don't use markdown. Output only plain text, however you can use emoji (but not t
 
 - **Output:** A complete post caption.
 
-Important!: before moving forward to generate image step, please ask user if the post text is fine. Don't generate image until you clarify the text with user!
-
 ### Step 4: Generate Image
 
     Based on the Instagram post text, create a detailed prompt for an image generation model to create a visually appealing and relevant image.
@@ -54,11 +52,11 @@ Important!: before moving forward to generate image step, please ask user if the
     
 - **Output:** An image file ready for posting.
 
-Important!: before moving forward to save post step, please ask user if the post text and image are fine. Don't save anything until you clarify it with user!
+### Step 5: Save the post draft (save_post_draft)
 
-### Step 5: Ask for approval and save the post draft (save_post_draft)
-
-- **Action:** Save the post draft, when you have all the required data, approved by user
+- **Action:** Save the post draft with all the required data
 - **Context:**
-    - You need post text and the image approved by user
+    - Post text and image must be ready
 - **Output:** A directory name with the post draft, show it to the user, it's an important ID of the post.
+
+Never publish the post on this step!

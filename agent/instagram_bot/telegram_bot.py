@@ -6,22 +6,23 @@ from functools import wraps
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, ContextTypes, filters, ConversationHandler
 
-from .config import TELEGRAM_TOKEN
+from .config import TELEGRAM_TOKEN, ADMIN_TELEGRAM_ID
 from .instagram import make_post
-from .agentic_flow import agentic_flow
+from .agentic_flow import agentic_flow, weekly_planning
 
 logger = logging.getLogger(__name__)
+
+APPLICATION = {}
 
 def admin_only(func):
     @wraps(func)
     async def wrapped(update: Update, context: ContextTypes.DEFAULT_TYPE, *args, **kwargs):
-        admin_ids_str = os.getenv("ADMIN_TELEGRAM_ID")
-        if not admin_ids_str:
+        if not ADMIN_TELEGRAM_ID:
             logger.warning("ADMIN_TELEGRAM_ID environment variable not set.")
             await update.message.reply_text("You are not authorized to use this bot.")
             return
 
-        admin_ids = [admin_id.strip() for admin_id in admin_ids_str.split(',')]
+        admin_ids = [admin_id.strip() for admin_id in ADMIN_TELEGRAM_ID.split(',')]
         user_id = str(update.effective_user.id)
 
         if user_id not in admin_ids:
@@ -153,9 +154,22 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     return ConversationHandler.END
 
+@admin_only
+async def schedule(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    logger.info(f"Received /schedule command from {update.effective_user.name}")
+    async def reply_message(message: str) -> None:
+        await update.message.reply_text(message)
+    
+    async def reply_photo(photo_path: str) -> None:
+        await update.message.reply_photo(photo=open(photo_path, "rb"))
+    
+    await weekly_planning(reply_message, reply_photo, auto_mode=True)
+
+
 def run_bot():
     logger.info("Starting telegram bot polling...")
     application = Application.builder().token(TELEGRAM_TOKEN).build()
+    APPLICATION['tg'] = application
 
     application.add_handler(ConversationHandler(
         entry_points=[MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message)],  #[CommandHandler("start", start)],
@@ -171,5 +185,6 @@ def run_bot():
     application.add_handler(CommandHandler("list_future", list_future_posts))
     application.add_handler(CommandHandler("delete_future_post", delete_future_post))
     application.add_handler(CommandHandler("post", post))
+    application.add_handler(CommandHandler("schedule", schedule))
 
     application.run_polling()

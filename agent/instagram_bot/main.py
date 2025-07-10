@@ -1,8 +1,15 @@
 import logging
 import os
 import threading
+import signal
+import sys
 from .telegram_bot import run_bot
 from .scheduler import run_scheduler
+
+def handle_sigint(signum, frame):
+    logging.info("Received SIGINT (Ctrl+C). Shutting down...")
+    sys.exit(0)
+
 
 def main():
     logging.basicConfig(
@@ -12,6 +19,9 @@ def main():
     
     logging.info("Creating 'data/future_posts' directory if it doesn't exist...")
     os.makedirs("data/future_posts", exist_ok=True)
+
+    # Register SIGINT handler
+    signal.signal(signal.SIGINT, handle_sigint)
 
     logging.info("Starting scheduler in a background thread...")
     scheduler_thread = threading.Thread(target=run_scheduler)

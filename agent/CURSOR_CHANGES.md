@@ -1,0 +1,1 @@
+- Added an explicit SIGINT (Ctrl+C) handler in instagram_bot/main.py using the signal module. The handler logs a shutdown message and exits the program, ensuring clean shutdown on Ctrl+C. 

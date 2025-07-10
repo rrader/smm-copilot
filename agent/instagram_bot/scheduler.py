@@ -1,106 +1,147 @@
-
 import schedule
 import time
 import logging
 from pathlib import Path
 import json
-import datetime
+from .instagram import make_post
+from .agentic_flow import weekly_planning
+from .telegram_bot import APPLICATION
+from .config import ADMIN_TELEGRAM_ID
 import asyncio
 
-from .agentic_flow import agentic_flow
+# --- Utility functions for sending messages to admin ---
+async def reply_message(message: str) -> None:
+    admin_chat_id = ADMIN_TELEGRAM_ID.split(',')[0] if ADMIN_TELEGRAM_ID else None
+    if not admin_chat_id or 'tg' not in APPLICATION or not APPLICATION['tg'] or not APPLICATION['tg'].bot:
+        print(message)
+        return
+    await APPLICATION['tg'].bot.send_message(chat_id=admin_chat_id, text=message)
+
+async def reply_photo(photo_path: str) -> None:
+    admin_chat_id = ADMIN_TELEGRAM_ID.split(',')[0] if ADMIN_TELEGRAM_ID else None
+    if not admin_chat_id or 'tg' not in APPLICATION or not APPLICATION['tg'] or not APPLICATION['tg'].bot:
+        print(photo_path)
+        return
+    await APPLICATION['tg'].bot.send_photo(chat_id=admin_chat_id, photo=open(photo_path, "rb"))
+
+# --- Task Functions ---
+
+def weekly_planning_task(**kwargs):
+    """Placeholder for the weekly planning task."""
+    logger.info(f"Running weekly_planning_task with args: {kwargs}")
+
+    asyncio.run(weekly_planning(reply_message, reply_photo, auto_mode=True))
+
+
+def publish_post_task(**kwargs):
+    """Placeholder for the publish post task."""
+    logger.info(f"Running publish_post_task with args: {kwargs}")
+    make_post(kwargs['post_directory_name'])
+    asyncio.run(reply_message("Post {} published successfully.".format(kwargs['post_directory_name'])))
+    return schedule.CancelJob
+
+
+def publish_story_task(**kwargs):
+    """Placeholder for the publish story task."""
+    logger.info(f"Running publish_story_task with args: {kwargs}")
+    return schedule.CancelJob
+
+
+def reload_all_tasks():
+    """
+    Clears all existing jobs and reloads them from the JSON configuration files.
+    This function is run periodically to pick up any changes.
+    """
+    logger.info("Clearing all scheduled jobs and reloading...")
+    schedule.clear()
+    
+    base_path = Path("data/schedule")
+    load_tasks_from_file(base_path / "static.json")
+    load_tasks_from_file(base_path / "generated.json")
+ 
+    logger.info(f"Reload complete. Total jobs scheduled: {len(schedule.get_jobs())}")
+
+# --- Task Mapping ---
+TASKS = {
+    "weekly_planning_task": weekly_planning_task,
+    "task_post": publish_post_task,
+    "task_story": publish_story_task,
+    "reload_all_tasks": reload_all_tasks,
+}
 
 logger = logging.getLogger(__name__)
 
+def _schedule_job(task_details):
+    """Schedules a single job based on its details."""
+    task_name = task_details.get("task_name")
+    schedule_info = task_details.get("schedule")
+    task_args = task_details.get("task_args", {})
 
-async def llm_call(prompt: str, context: dict = None):
-    if context is None:
-        context = {}
-    
-    async def reply_message(message: str) -> None:
-        logger.info(f"LLM reply: {message}")
+    if not task_name or not schedule_info:
+        logger.error(f"Skipping invalid task: {task_details}")
+        return
 
-    async def reply_photo(photo_path: str) -> None:
-        logger.info(f"LLM reply with photo: {photo_path}")
+    if task_name not in TASKS:
+        logger.error(f"Unknown task '{task_name}'")
+        return
 
-    return await agentic_flow(prompt, context, reply_message, reply_photo)
+    try:
+        job = schedule.every()
+        # Handle day-of-the-week schedules (e.g., weekly)
+        if 'day' in schedule_info:
+            day_of_week = schedule_info['day']
+            if hasattr(job, day_of_week):
+                job = getattr(job, day_of_week)
+            else:
+                logger.error(f"Invalid day '{day_of_week}' in schedule for task '{task_name}'")
+                return
+        
+        # Handle interval-based schedules (e.g., every 5 minutes)
+        if 'unit' in schedule_info and schedule_info['unit'] != 'weeks':
+             # Fallback for units like 'minutes', 'hours', 'days'
+            interval = schedule_info.get('interval', 1)
+            job.unit = schedule_info['unit']
+            job.interval = interval
 
-def weekly_planning_task():
-    """
-    This task runs once a week to plan the content for the next week.
-    """
-    logger.info("Running weekly planning task...")
-    # Clear old one-shot tasks
-    clear_old_tasks()
+        if 'at' in schedule_info:
+            job = job.at(schedule_info['at'])
+        
+        job.do(TASKS[task_name], **task_args)
+        logger.info(f"Scheduled task '{task_name}' with schedule: {schedule_info}")
 
-    # Create a new plan for the week
-    asyncio.run(llm_call("This is the weekly planning task. Please, create a content plan for the next week. The plan should be saved to a file named 'content_plan.md' in the 'data' directory. The content plan should be a markdown file with a list of post ideas for the next week. Finally, schedule the posts for the next week. The posts should be scheduled using the 'schedule_onetime_task' tool. Every post must have a specific time, and the time should be on Monday, Wednesday and Friday at 18:00, 19:00 and 20:00. Remember to schedule the posts for the next week, not the current week."))
+    except Exception as e:
+        logger.error(f"Could not schedule task {task_name}: {e}", exc_info=True)
 
 
-def clear_old_tasks():
-    """
-    Clears all one-shot tasks from the schedule.
-    """
-    tasks_file = Path("data/scheduled_tasks.json")
-    if tasks_file.exists():
-        tasks_file.unlink()
-    logger.info("Cleared old one-shot tasks.")
+def load_tasks_from_file(file_path: Path):
+    """Loads tasks from a JSON file and schedules them."""
+    if not file_path.exists() or file_path.stat().st_size == 0:
+        logger.warning(f"{file_path.name} not found or is empty. No tasks loaded.")
+        return
 
-
-def schedule_onetime_task(execution_time, task_name, task_args):
-    """
-    Schedules a one-time task.
-    """
-    tasks_file = Path("data/scheduled_tasks.json")
-    tasks = []
-    if tasks_file.exists() and tasks_file.stat().st_size > 0:
-        tasks = json.loads(tasks_file.read_text())
-
-    tasks.append({
-        "execution_time": execution_time,
-        "task_name": task_name,
-        "task_args": task_args
-    })
-
-    tasks_file.write_text(json.dumps(tasks, indent=4))
-    logger.info(f"Scheduled one-time task {task_name} at {execution_time}")
-    return "Successfully scheduled one-time task."
+    try:
+        tasks = json.loads(file_path.read_text())
+        for task in tasks:
+            _schedule_job(task)
+    except json.JSONDecodeError:
+        logger.error(f"Error decoding JSON from {file_path.name}")
+    except Exception as e:
+        logger.error(f"An unexpected error occurred while loading tasks from {file_path.name}: {e}", exc_info=True)
 
 
 def run_scheduler():
     """
-    Runs the scheduler in a loop.
+    Runs the main scheduler loop.
     """
     logger.info("Starting scheduler...")
-    schedule.every().sunday.at("23:00").do(weekly_planning_task)
+    
+    reload_all_tasks()
 
+    logger.info("Scheduler started. Entering main loop...")
     while True:
         schedule.run_pending()
-        # also check for one-time tasks
-        tasks_file = Path("data/scheduled_tasks.json")
-        if tasks_file.exists() and tasks_file.stat().st_size > 0:
-            tasks = json.loads(tasks_file.read_text())
-            now = datetime.datetime.now(datetime.timezone.utc)
-            
-            remaining_tasks = []
-            for task in tasks:
-                try:
-                    execution_time_str = task["execution_time"]
-                    execution_time = datetime.datetime.fromisoformat(execution_time_str)
-                    
-                    if execution_time <= now:
-                        logger.info(f"Running one-time task {task['task_name']} with args {task['task_args']}")
-                        prompt = f"Please, run the task {task['task_name']} with the following arguments: {task['task_args']}"
-                        asyncio.run(llm_call(prompt))
-                    else:
-                        remaining_tasks.append(task)
-                except Exception as e:
-                    logger.error(f"Error processing task {task}: {e}", exc_info=True)
-
-            if len(remaining_tasks) != len(tasks):
-                tasks_file.write_text(json.dumps(remaining_tasks, indent=4))
-
         time.sleep(1)
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     run_scheduler()

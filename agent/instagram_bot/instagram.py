@@ -53,6 +53,7 @@ def get_instagram_posts():
 def sync_instagram_posts():
     """
     Fetches Instagram posts and appends new ones to data/post_history.md.
+    Only performs full sync if file hasn't been synced in last 10 minutes.
     """
     logger.info("Starting Instagram post sync.")
     post_history_path = "data/post_history.md"
@@ -62,13 +63,12 @@ def sync_instagram_posts():
         with open(post_history_path, "w", encoding="utf-8") as f:
             f.write("# Post History\n\nThis file contains a log of all posts made to Instagram.\n")
         logger.info(f"Created post history file at {post_history_path}")
-    else:
     
-        last_modified_time = os.path.getmtime(post_history_path)
-        print(time.time() - last_modified_time)
-        if time.time() - last_modified_time < 600:
-            logger.info("Recent sync. Skipping.")
-            return
+    # Check if we need to sync by comparing modification time
+    last_modified_time = os.path.getmtime(post_history_path)
+    if time.time() - last_modified_time < 600:  # 10 minutes
+        logger.info("Post history was synced less than 10 minutes ago. Skipping sync.")
+        return
 
     # Get existing post shortcodes from the history file
     with open(post_history_path, "r", encoding="utf-8") as f:
@@ -84,6 +84,8 @@ def sync_instagram_posts():
     
     if not new_posts:
         logger.info("Sync complete. No new posts to add.")
+        # Update modification time even when no changes to prevent unnecessary checks
+        Path(post_history_path).touch()
         return
 
     # Append new posts to the history file
@@ -96,18 +98,17 @@ def sync_instagram_posts():
             f.write(f"**URL:** {post['url']}\n")
             
     logger.info(f"Sync complete. Added {len(new_posts)} new posts to history.")
-    # Update the file's modification time to current time
-    Path(post_history_path).touch()
+    # File is automatically touched by the write operation above
 
 
-def make_post(post_dir_name: str):
+def make_post(post_directory_name: str):
     """
     Posts an image with a caption to Instagram from a given directory.
     Moves the post to 'posted_posts' upon success.
     """
-    logger.info(f"Attempting to make a post from directory: {post_dir_name}")
+    logger.info(f"Attempting to make a post from directory: {post_directory_name}")
     
-    future_post_dir = Path(f"data/future_posts/{post_dir_name}")
+    future_post_dir = Path(f"data/future_posts/{post_directory_name}")
     
     if not future_post_dir.is_dir():
         error_message = f"Directory {future_post_dir} does not exist."
@@ -141,7 +142,7 @@ def make_post(post_dir_name: str):
         posted_dir = Path("posted_posts")
         posted_dir.mkdir(exist_ok=True)
         
-        new_location = posted_dir / post_dir_name
+        new_location = posted_dir / post_directory_name
         future_post_dir.rename(new_location)
         logger.info(f"Moved post directory from {future_post_dir} to {new_location}")
         
