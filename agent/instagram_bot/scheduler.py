@@ -29,9 +29,7 @@ async def reply_photo(photo_path: str) -> None:
 def weekly_planning_task(**kwargs):
     """Placeholder for the weekly planning task."""
     logger.info(f"Running weekly_planning_task with args: {kwargs}")
-
     asyncio.run(weekly_planning(reply_message, reply_photo, auto_mode=True))
-
 
 def publish_post_task(**kwargs):
     """Placeholder for the publish post task."""
@@ -40,12 +38,10 @@ def publish_post_task(**kwargs):
     asyncio.run(reply_message("Post {} published successfully.".format(kwargs['post_directory_name'])))
     return schedule.CancelJob
 
-
 def publish_story_task(**kwargs):
     """Placeholder for the publish story task."""
     logger.info(f"Running publish_story_task with args: {kwargs}")
     return schedule.CancelJob
-
 
 def reload_all_tasks():
     """
@@ -61,12 +57,41 @@ def reload_all_tasks():
  
     logger.info(f"Reload complete. Total jobs scheduled: {len(schedule.get_jobs())}")
 
-# --- Task Mapping ---
+# --- Task Validation Functions ---
+
+def validate_generic_task(task_details: dict) -> bool:
+    """Generic validation for tasks without specific arguments."""
+    return True
+
+def validate_publish_post_task(task_details: dict) -> bool:
+    """Validates the payload for a publish_post_task."""
+    task_args = task_details.get("task_args", {})
+    post_directory_name = task_args.get("post_directory_name")
+    
+    if not post_directory_name:
+        logger.error(f"Missing 'post_directory_name' for task_post: {task_details}")
+        return False
+    
+    post_path = Path("data/future_posts") / post_directory_name
+    if not post_path.is_dir():
+        logger.warning(f"Post directory '{post_path}' not found. Skipping schedule for task: {task_details}")
+        return False
+        
+    return True
+
+# --- Task Mappings ---
 TASKS = {
     "weekly_planning_task": weekly_planning_task,
     "task_post": publish_post_task,
     "task_story": publish_story_task,
     "reload_all_tasks": reload_all_tasks,
+}
+
+TASKS_VALIDATION = {
+    "weekly_planning_task": validate_generic_task,
+    "task_post": validate_publish_post_task,
+    "task_story": validate_generic_task,
+    "reload_all_tasks": validate_generic_task,
 }
 
 logger = logging.getLogger(__name__)
@@ -83,6 +108,12 @@ def _schedule_job(task_details):
 
     if task_name not in TASKS:
         logger.error(f"Unknown task '{task_name}'")
+        return
+
+    # Validate the task using the validation map
+    validation_func = TASKS_VALIDATION.get(task_name)
+    if not validation_func or not validation_func(task_details):
+        logger.warn(f"Task validation failed for '{task_name}'. Skipping.")
         return
 
     try:

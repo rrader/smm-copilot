@@ -2,9 +2,12 @@ import logging
 import os
 import shutil
 from datetime import datetime
-from functools import wraps
+from functools import wraps, partial
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, ContextTypes, filters, ConversationHandler
+import json
+from pathlib import Path
+import schedule
 
 from .config import TELEGRAM_TOKEN, ADMIN_TELEGRAM_ID
 from .instagram import make_post
@@ -45,6 +48,8 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     help_text = """
 Available commands:
 /help - Show this help message
+/schedule - Show the scheduled tasks
+/do_schedule - Run the weekly planning and scheduling
 /list_future - List scheduled future posts
 /delete_future_post <post_dir_name> - Delete a scheduled future post
 /post <post_dir_name> - Post a future post to Instagram
@@ -155,8 +160,40 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return ConversationHandler.END
 
 @admin_only
-async def schedule(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def schedule_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.info(f"Received /schedule command from {update.effective_user.name}")
+    
+    jobs = schedule.get_jobs()
+
+    if not jobs:
+        await update.message.reply_text("No scheduled tasks found.")
+        return
+
+    schedules = ["*Current Schedule*"]
+    for job in jobs:
+        func = job.job_func
+        if isinstance(func, partial):
+            task_name = func.func.__name__
+            task_args = func.keywords
+        else:
+            task_name = func.__name__
+            task_args = {}
+
+        schedule_str = f"• `{task_name}`"
+        if task_args:
+            schedule_str += f" with args `{task_args}`"
+        
+        next_run_time = job.next_run.strftime('%Y-%m-%d %H:%M:%S %Z') if job.next_run else 'N/A'
+        schedule_str += f"\n  Next run: `{next_run_time}`"
+        
+        schedules.append(schedule_str)
+
+    await update.message.reply_text("\n".join(schedules), parse_mode='Markdown')
+
+
+@admin_only
+async def do_schedule(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    logger.info(f"Received /do_schedule command from {update.effective_user.name}")
     async def reply_message(message: str) -> None:
         await update.message.reply_text(message)
     
@@ -172,10 +209,7 @@ def run_bot():
     APPLICATION['tg'] = application
 
     application.add_handler(ConversationHandler(
-        entry_points=[MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message)],  #[CommandHandler("start", start)],
-        # states={
-        #     "waiting_for_message": [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message)],
-        # },
+        entry_points=[MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message)],
         states={},
         fallbacks=[CommandHandler("cancel", cancel)],
     ))
@@ -185,6 +219,7 @@ def run_bot():
     application.add_handler(CommandHandler("list_future", list_future_posts))
     application.add_handler(CommandHandler("delete_future_post", delete_future_post))
     application.add_handler(CommandHandler("post", post))
-    application.add_handler(CommandHandler("schedule", schedule))
+    application.add_handler(CommandHandler("schedule", schedule_command))
+    application.add_handler(CommandHandler("do_schedule", do_schedule))
 
     application.run_polling()
