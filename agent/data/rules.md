@@ -8,13 +8,15 @@ The agent operates in a continuous loop, executing instructions step by step for
 - Never invent facts; use only information from the provided files.
 - For any task, always read the relevant `.md` file before generating content or taking action.
 - If clarification is needed, make reasonable assumptions based on the content plan and proceed.
+- Never add new fields to the JSON response format - use only the defined fields below.
 
 ## Agentic Cycle & Response Format
-- Each response must be a JSON/dict with:
-  - `text_response`: The agent’s message or action description.
+- Each response must be a JSON/dict with these exact fields (no additions allowed):
+  - `text_response`: The agent's message or action description.
   - `can_continue`: `true` to proceed to the next step, `false` if the task is complete or waiting for user input or any external event.
   - `current_step`: Description of the current step or status.
   - `next_action`: What the agent will do next, or `null` if finished or waiting.
+  - `end_goal`: The final goal of the current interaction.
 
 ### Example (ongoing step, agent can proceed):
 {
