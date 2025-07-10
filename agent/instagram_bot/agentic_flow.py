@@ -141,13 +141,13 @@ async def read_data_file(file_name: str, reply_message, reply_photo):
     """
     Reads the content of a specified file from the 'data' directory.
     This is useful for accessing documents like the content plan or other data files.
-    The path is relative to the 'data' directory. Subdirectories are not allowed.
+    The path is relative to the 'data' directory. Subdirectories are allowed.
     """
     try:
         # Security: Prevent directory traversal.
-        if ".." in file_name or "/" in file_name or "\\" in file_name:
+        if ".." in file_name or "\\" in file_name:
             logger.warning(f"Attempted directory traversal: {file_name}")
-            return "Error: Invalid file name. Subdirectories are not allowed."
+            return "Error: Invalid file name. Directory traversal is not allowed."
 
         file_path = Path("data") / file_name
         
