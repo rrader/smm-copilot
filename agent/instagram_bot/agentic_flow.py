@@ -186,10 +186,13 @@ async def write_data_file(file_name: str, content: str, reply_message, reply_pho
 
 # --- Agent Dialogue Flow ---
 
-async def weekly_planning(reply_message, reply_photo, auto_mode: bool = False):  
+async def weekly_planning(reply_message, reply_photo, auto_mode: bool = False, context: dict = None):  
+    if context is None:
+        context = {}
+
     weekly_planning_md = (Path(__file__).parent.parent / "data/weekly_planning_guide.md").read_text(encoding="utf-8")
     await agentic_flow(
-        weekly_planning_md, {}, reply_message, reply_photo, auto_mode=auto_mode, 
+        weekly_planning_md, context, reply_message, reply_photo, auto_mode=auto_mode, 
         tools=["get_history", "read_data_file", "write_data_file", "generate_post_image", "save_post_draft"],
         model="gpt-4o"
     )
@@ -272,7 +275,7 @@ async def agentic_flow(text: str, context: dict, reply_message, reply_photo, aut
 
                 function_args = json.loads(tool_call.function.arguments)
                 logger.info(f"Calling tool `{function_name}` with arguments: {function_args}")
-                await reply_message(f"Calling tool `{function_name}` with arguments: {function_args}")
+                await reply_message(f"🛠️ {function_name} {function_args}")
 
                 # Call the tool function
                 function_response = await function_to_call(**function_args, reply_message=reply_message, reply_photo=reply_photo)
@@ -306,8 +309,8 @@ async def agentic_flow(text: str, context: dict, reply_message, reply_photo, aut
             await reply_message(response['text_response'])
         else:
             logger.info(f"Agentic loop can continue with message {response}. Continuing...")
-            await reply_message(f"{response['text_response']}\n>>> Agentic loop continues automatically >>>")
-            await agentic_flow("continue", context, reply_message, reply_photo)
+            await reply_message(f"{response['text_response']} 🤔🤔🤔")
+            await agentic_flow("continue following the plan", context, reply_message, reply_photo)
 
     except Exception as e:
         logger.error(f"An error occurred during the agentic flow: {e}", exc_info=True)

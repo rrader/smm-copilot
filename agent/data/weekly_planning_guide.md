@@ -38,7 +38,7 @@ Never save this file, this is not a final step. Just output this to the user.
 
 ### 4 Generate Weekly Posts
 
-Using the generated plan, one by one, generate all post drafts.
+Using the generated plan, one by one, generate all post drafts. When you're done, we will continue to build weekly schedule.
 
 For each item:
 
@@ -78,8 +78,7 @@ Never save this file, this is not a final step.
 
 ## 5: Generate Weekly Schedule
 
-Now, we are ready to save the `schedule/generated.json` file.
-Never, ever generate and save generated.json file until you have created post drafts, and you know post ids (directory names).
+When all post drafts are generated, we are ready to save the `schedule/generated.json` file. Don't save generated.json file until you have created post drafts, and you know post ids (directory names) - continue previous step in loop until all posts are generated - and then continue with this step.
 
 Using the generated post/stories list, create a schedule that:
 - Maintains consistent posting times

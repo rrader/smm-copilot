@@ -200,7 +200,7 @@ async def do_schedule(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     async def reply_photo(photo_path: str) -> None:
         await update.message.reply_photo(photo=open(photo_path, "rb"))
     
-    await weekly_planning(reply_message, reply_photo, auto_mode=True)
+    await weekly_planning(reply_message, reply_photo, auto_mode=True, context=context.chat_data)
 
 
 def run_bot():
