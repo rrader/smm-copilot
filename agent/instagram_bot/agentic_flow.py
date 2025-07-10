@@ -256,6 +256,7 @@ async def agentic_flow(text: str, context: dict, reply_message, reply_photo, aut
                 "save_schedule": save_schedule,
                 "generate_post_image": generate_post_image,
                 "save_post_draft": save_post_draft,
+                "list_drafted_posts": list_drafted_posts,
                 "publish_post": publish_post
             }
 
