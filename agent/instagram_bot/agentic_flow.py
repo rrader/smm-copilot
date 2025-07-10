@@ -137,6 +137,38 @@ async def publish_post(post_directory_name: str, reply_message, reply_photo):
         logger.error(f"Error publishing post: {e}", exc_info=True)
         return f"An error occurred while publishing the post: {e}"
 
+
+async def list_drafted_posts(reply_message, reply_photo):
+    """
+    Lists all previously drafted posts that are pending for review or publishing.
+    This is useful for checking if there is existing content that can be scheduled.
+    """
+    try:
+        drafts_dir = Path("data/future_posts")
+        drafts_dir.mkdir(parents=True, exist_ok=True)
+        drafted_posts = [
+            {
+                "name": d.name,
+                "idea": (d / "idea.txt").read_text(encoding="utf-8"),
+                "text": (d / "post.txt").read_text(encoding="utf-8"),
+                "image": str(d / "post_processed.png")
+            } for d in drafts_dir.iterdir() if d.is_dir() and d.name.startswith('post_')
+        ]
+        if not drafted_posts:
+            return json.dumps({
+                "status": "No drafted posts found.",
+                "posts": []
+            })
+        logger.info(f"Found drafted posts: {drafted_posts}")
+        return json.dumps({
+            "status": "Drafted posts listed successfully.",
+            "posts": drafted_posts
+        })
+    except Exception as e:
+        logger.error(f"Error listing drafted posts: {e}", exc_info=True)
+        return json.dumps({"status": "error", "message": f"An error occurred while listing drafted posts: {e}"})
+
+
 async def read_data_file(file_name: str, reply_message, reply_photo):
     """
     Reads the content of a specified file from the 'data' directory.
@@ -198,7 +230,8 @@ TOOLS = {
     "save_schedule": {"type": "function", "function": {"name": "save_schedule", "description": "Saves the generated schedule to 'data/schedule/generated.json'. To run post on specific day, unit should be `weeks`", "parameters": {"type": "object", "properties": {"schedule_data": {"type": "array", "items": {"type": "object", "properties": {"task_name": {"type": "string"}, "schedule": {"type": "object", "properties": {"unit": {"type": "string"}, "day": {"type": "string"}, "at": {"type": "string"}}}, "task_args": {"type": "object"}}}, "description": "A list of schedule entries to save. Put schedule data in the following format: [{\"task_name\": \"task_post\", \"schedule\": {\"unit\": \"weeks\", \"day\": \"monday\", \"at\": \"12:00\"}, \"task_args\": {\"post_directory_name\": \"...\"}}, {\"task_name\": \"task_story\", \"schedule\": {\"unit\": \"weeks\", \"day\": \"tuesday\", \"at\": \"15:00\"}, \"task_args\": {\"story_directory_name\": \"...\"}}]"}}, "required": ["schedule_data"]}}},
     "generate_post_image": {"type": "function", "function": {"name": "generate_post_image", "description": "Generates an image for an Instagram post based on the post text. Response contains the path to the image file.", "parameters": {"type": "object", "properties": {"image_prompt": {"type": "string", "description": "The prompt for the image generation model."}}, "required": ["image_prompt"]}}},
     "save_post_draft": {"type": "function", "function": {"name": "save_post_draft", "description": "Saves a generated post (idea, text, and image) as a draft for review. Never call this tool if you didn't generate the image first.", "parameters": {"type": "object", "properties": {"idea": {"type": "string"}, "post_text": {"type": "string"}, "image_path": {"type": "string"}}, "required": ["idea", "post_text", "image_path"]}}},
-    "publish_post": {"type": "function", "function": {"name": "publish_post", "description": "Publishes a staged post draft to Instagram. Never call this tool if you didn't save the post draft first. Also, never call this tool if you don't have an explicit confirmation from user that they want to publish the post.", "parameters": {"type": "object", "properties": {"post_directory_name": {"type": "string", "description": "The name of the post directory inside 'data/future_posts' to publish."}}, "required": ["post_directory_name"]}}}
+    "publish_post": {"type": "function", "function": {"name": "publish_post", "description": "Publishes a staged post draft to Instagram. Never call this tool if you didn't save the post draft first. Also, never call this tool if you don't have an explicit confirmation from user that they want to publish the post.", "parameters": {"type": "object", "properties": {"post_directory_name": {"type": "string", "description": "The name of the post directory inside 'data/future_posts' to publish."}}, "required": ["post_directory_name"]}}},
+    "list_drafted_posts": {"type": "function", "function": {"name": "list_drafted_posts", "description": "Lists all previously drafted posts that are pending for review or publishing."}},
 }
 
 async def agentic_flow(text: str, context: dict, reply_message, reply_photo, auto_mode: bool = False, tools: list = None, model: str = "gpt-4o-mini"):
