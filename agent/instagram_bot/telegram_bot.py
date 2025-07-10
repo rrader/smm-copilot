@@ -150,6 +150,17 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 
 @admin_only
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Starts the conversation."""
+    user = update.message.from_user
+    logger.info("User %s started the conversation.", user.first_name)
+
+    await update.message.reply_text("Hello! I am your Instagram bot. Use /help to see the available commands.")
+    
+    return "waiting_for_message"
+
+
+@admin_only
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Cancels and ends the conversation."""
     user = update.message.from_user
@@ -209,8 +220,10 @@ def run_bot():
     APPLICATION['tg'] = application
 
     application.add_handler(ConversationHandler(
-        entry_points=[MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message)],
-        states={},
+        entry_points=[CommandHandler("start", start)],
+        states={
+            "waiting_for_message": MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message),
+        },
         fallbacks=[CommandHandler("cancel", cancel)],
     ))
     application.add_handler(CommandHandler("help", help_command))
