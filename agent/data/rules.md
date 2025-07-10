@@ -52,7 +52,6 @@ The agent operates in a continuous loop, executing instructions step by step for
 
 - **Content Plan:** `content_plan.md`
 - **Weekly Schedule (generated):** `schedule/generated.json`
-- **System/Static Schedule:** `schedule/static.json`
 - **Post Drafts:** (directory name provided when saving a post draft)
 - **Story Drafts:** (directory name provided when saving a story draft)
 - **Weekly Planning Guide:** `weekly_planning_guide.md`

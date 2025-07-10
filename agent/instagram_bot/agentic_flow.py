@@ -188,7 +188,7 @@ async def weekly_planning(reply_message, reply_photo, auto_mode: bool = False, c
     weekly_planning_md = (Path(__file__).parent.parent / "data/weekly_planning_guide.md").read_text(encoding="utf-8")
     await agentic_flow(
         weekly_planning_md, context, reply_message, reply_photo, auto_mode=auto_mode, 
-        model="gpt-4o"
+        # model="gpt-4o"
     )
 
 
@@ -197,7 +197,7 @@ TOOLS = {
     "read_data_file": {"type": "function", "function": {"name": "read_data_file", "description": "Reads the content of a specified file. Useful for accessing the .md files, content plan or other files. Only files directly in 'data' are allowed (no subdirectories).", "parameters": {"type": "object", "properties": {"file_name": {"type": "string", "description": "The name of the file to read from the 'data' directory."}}, "required": ["file_name"]}}},
     "save_schedule": {"type": "function", "function": {"name": "save_schedule", "description": "Saves the generated schedule to 'data/schedule/generated.json'. To run post on specific day, unit should be `weeks`", "parameters": {"type": "object", "properties": {"schedule_data": {"type": "array", "items": {"type": "object", "properties": {"task_name": {"type": "string"}, "schedule": {"type": "object", "properties": {"unit": {"type": "string"}, "day": {"type": "string"}, "at": {"type": "string"}}}, "task_args": {"type": "object"}}}, "description": "A list of schedule entries to save. Put schedule data in the following format: [{\"task_name\": \"task_post\", \"schedule\": {\"unit\": \"weeks\", \"day\": \"monday\", \"at\": \"12:00\"}, \"task_args\": {\"post_directory_name\": \"...\"}}, {\"task_name\": \"task_story\", \"schedule\": {\"unit\": \"weeks\", \"day\": \"tuesday\", \"at\": \"15:00\"}, \"task_args\": {\"story_directory_name\": \"...\"}}]"}}, "required": ["schedule_data"]}}},
     "generate_post_image": {"type": "function", "function": {"name": "generate_post_image", "description": "Generates an image for an Instagram post based on the post text. Response contains the path to the image file.", "parameters": {"type": "object", "properties": {"image_prompt": {"type": "string", "description": "The prompt for the image generation model."}}, "required": ["image_prompt"]}}},
-    "save_post_draft": {"type": "function", "function": {"name": "save_post_draft", "description": "Saves a generated post (idea, text, and image) as a draft for review.", "parameters": {"type": "object", "properties": {"idea": {"type": "string"}, "post_text": {"type": "string"}, "image_path": {"type": "string"}}, "required": ["idea", "post_text", "image_path"]}}},
+    "save_post_draft": {"type": "function", "function": {"name": "save_post_draft", "description": "Saves a generated post (idea, text, and image) as a draft for review. Never call this tool if you didn't generate the image first.", "parameters": {"type": "object", "properties": {"idea": {"type": "string"}, "post_text": {"type": "string"}, "image_path": {"type": "string"}}, "required": ["idea", "post_text", "image_path"]}}},
     "publish_post": {"type": "function", "function": {"name": "publish_post", "description": "Publishes a staged post draft to Instagram. Never call this tool if you didn't save the post draft first. Also, never call this tool if you don't have an explicit confirmation from user that they want to publish the post.", "parameters": {"type": "object", "properties": {"post_directory_name": {"type": "string", "description": "The name of the post directory inside 'data/future_posts' to publish."}}, "required": ["post_directory_name"]}}}
 }
 
@@ -299,11 +299,18 @@ async def agentic_flow(text: str, context: dict, reply_message, reply_photo, aut
         
         print(">>>>>", response)
         response = json.loads(response)
+
+        say = f"🤖 {response['text_response']}\n"
+        if 'current_step' in response:
+            say += f"🔍 {response['current_step']}\n"
+        if 'next_step' in response:
+            say += f"🔍 {response['next_step']}\n"
+
         if 'can_continue' not in response or not response['can_continue']:
-            await reply_message(response['text_response'])
+            await reply_message(say)
         else:
             logger.info(f"Agentic loop can continue with message {response}. Continuing...")
-            await reply_message(f"{response['text_response']} 🤔🤔🤔")
+            await reply_message(f"{say}🤔🤔🤔")
             await agentic_flow("continue following the plan", context, reply_message, reply_photo)
 
     except Exception as e:
