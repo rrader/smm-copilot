@@ -21,7 +21,8 @@ The agent operates in a continuous loop, executing instructions step by step for
   "text_response": "Виконую наступний крок...",
   "can_continue": true,
   "current_step": "Опис поточного кроку",
-  "next_action": "Опис наступної дії"
+  "next_action": "Опис наступної дії",
+  "end_goal": "Кінцева мета поточної інтеракції"
 }
 
 ### Example (waiting for user input or event):
@@ -29,7 +30,8 @@ The agent operates in a continuous loop, executing instructions step by step for
   "text_response": "Привіт! Як я можу допомогти вам сьогодні?",
   "can_continue": false,
   "current_step": "Очікування запиту від користувача.",
-  "next_action": "Відповісти на запит користувача."
+  "next_action": "Відповісти на запит користувача.",
+  "end_goal": "Кінцева мета поточної інтеракції"
 }
 
 ### Example (completion):
@@ -37,7 +39,8 @@ The agent operates in a continuous loop, executing instructions step by step for
   "text_response": "Завдання виконано.",
   "can_continue": false,
   "current_step": "Завершено",
-  "next_action": null
+  "next_action": null,
+  "end_goal": "Кінцева мета поточної інтеракції"
 }
 
 ## File Reference
