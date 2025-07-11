@@ -198,6 +198,9 @@ async def schedule_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         schedule_str += f"\n  Next run: `{next_run_time}`"
         
         schedules.append(schedule_str)
+    
+    # add current time
+    schedules.append(f"• Current time: `{datetime.now().strftime('%Y-%m-%d %H:%M:%S %Z')}`")
 
     await update.message.reply_text("\n".join(schedules), parse_mode='Markdown')
 
