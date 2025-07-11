@@ -139,17 +139,12 @@ def make_post(post_directory_name: str):
         logger.info(f"Post successfully uploaded. Shortcode: {media.code}")
         
         # Move the post to a 'posted' directory
-        posted_dir = Path("posted_posts")
+        posted_dir = Path("data/posted_posts")
         posted_dir.mkdir(exist_ok=True)
         
         new_location = posted_dir / post_directory_name
         future_post_dir.rename(new_location)
         logger.info(f"Moved post directory from {future_post_dir} to {new_location}")
-        
-        # After posting, sync to update the history file
-        logger.info("Triggering a sync to update data/post_history.md")
-        sync_instagram_posts()
-        
         return media
         
     except Exception as e:
