@@ -135,7 +135,7 @@ def _schedule_job(task_details):
             job.interval = interval
 
         if 'at' in schedule_info:
-            job = job.at(schedule_info['at'])
+            job = job.at(schedule_info['at'], "Europe/Kyiv")
         
         job.do(TASKS[task_name], **task_args)
         logger.info(f"Scheduled task '{task_name}' with schedule: {schedule_info}")
