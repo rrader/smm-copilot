@@ -5,3 +5,4 @@ Pillow>=8.1.1
 openai
 httpx
 schedule
+pytz
