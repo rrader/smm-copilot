@@ -244,6 +244,18 @@ async def describe_image(image_url: str, reply_message, reply_photo, question: s
         return json.dumps({"status": "error", "message": f"An error occurred while describing the image: {e}"})
 
 
+async def repost_photo(post_url: str, reply_message, reply_photo):
+    """
+    Reposts a photo to story from a given instagram post URL.
+    """
+    try:
+        instagram.post_repost_photo(post_url)
+        return "Photo successfully reposted to story."
+    except Exception as e:
+        logger.error(f"Error reposting photo: {e}", exc_info=True)
+        return f"An error occurred while reposting the photo: {e}"
+
+
 # --- Agent Dialogue Flow ---
 
 async def weekly_planning(reply_message, reply_photo, auto_mode: bool = False, context: dict = None):  
@@ -267,6 +279,7 @@ TOOLS = {
     "list_drafted_posts": {"type": "function", "function": {"name": "list_drafted_posts", "description": "Lists all previously drafted posts that are pending for review or publishing."}},
     "search_posts_by_hashtag": {"type": "function", "function": {"name": "search_posts_by_hashtag", "description": "Searches for 10 posts on Instagram by a given hashtag. It returns a list of posts, with likes, text, image url, and comments number.", "parameters": {"type": "object", "properties": {"hashtag": {"type": "string", "description": "The hashtag to search for, without the '#' symbol."}, "amount": {"type": "integer", "description": "The number of posts to search for."}}, "required": ["hashtag"]}}},
     "describe_image": {"type": "function", "function": {"name": "describe_image", "description": "Describes an image from a URL.", "parameters": {"type": "object", "properties": {"image_url": {"type": "string", "description": "The URL of the image to describe."}, "question": {"type": "string", "description": "The question to ask about the image."}}, "required": ["image_url", "question"]}}},
+    "repost_photo": {"type": "function", "function": {"name": "repost_photo", "description": "Reposts a photo to story from a given instagram post URL.", "parameters": {"type": "object", "properties": {"post_url": {"type": "string", "description": "The URL of the post to repost."}}, "required": ["post_url"]}}},
 }
 
 async def agentic_flow(text: str, context: dict, reply_message, reply_photo, auto_mode: bool = False, tools: list = None, model: str = "gpt-4o-mini"):
@@ -328,6 +341,7 @@ async def agentic_flow(text: str, context: dict, reply_message, reply_photo, aut
                 "publish_post": publish_post,
                 "search_posts_by_hashtag": search_posts_by_hashtag,
                 "describe_image": describe_image,
+                "repost_photo": repost_photo,
             }
 
             for tool_call in tool_calls:

@@ -17,30 +17,24 @@ This guide defines the step-by-step process for creating a weekly content schedu
 
   monday:
     - post category about X
-    - story about Y
   tuesday:
     - nothing
   ...
 
 - Do not proceed until the plan is output.
 
-## Step 3: Generate Weekly Post and Story Drafts
+## Step 3: Generate Weekly Post Drafts
 
 - **Before generating new content, check for existing drafts using the `list_drafted_posts` tool.** If suitable drafts already exist, you can reuse them in the weekly plan instead of creating new ones.
 
-- For each planned item (if no suitable draft exists):
-  1. If a post, follow `create_post.md`.
-  2. If a story, follow `create_story.md`.
-  3. Generate the draft and save it. Do not publish.
-- Output a list of generated post and story directories with their planned schedule (do not save):
+- For each planned post (if no suitable draft exists):
+  1. Follow `create_post.md`.
+  2. Generate the draft and save it. Do not publish.
+- Output a list of generated post directories with their planned schedule (do not save):
 
 {
   "posts": [
     {"post_directory": "post_1_2_3", "schedule": "monday 15:00"},
-    ...
-  ],
-  "stories": [
-    {"story_directory": "story_1_2_3", "schedule": "monday 15:00"},
     ...
   ]
 }
@@ -56,11 +50,6 @@ This guide defines the step-by-step process for creating a weekly content schedu
     "task_name": "task_post",
     "schedule": {"unit": "weeks", "day": "monday", "at": "12:00"},
     "task_args": {"post_directory_name": "..."}
-  },
-  {
-    "task_name": "task_story",
-    "schedule": {"unit": "weeks", "day": "tuesday", "at": "15:00"},
-    "task_args": {"story_directory_name": "..."}
   }
 ]
 
