@@ -7,6 +7,7 @@ from .config import INSTAGRAM_USERNAME, INSTAGRAM_PASSWORD
 import re
 from datetime import datetime
 import time
+from time import sleep
 
 logger = logging.getLogger(__name__)
 
@@ -150,3 +151,31 @@ def make_post(post_directory_name: str):
     except Exception as e:
         logger.error(f"Failed to upload post: {e}", exc_info=True)
         raise
+
+def search_posts_by_hashtag(hashtag: str, amount: int = 5):
+    """
+    Searches for posts by a hashtag.
+    Returns a list of 5 posts with their likes, text, image url, and comments number.
+    """
+    cl = get_instagram_client()
+    logger.info(f"Searching for {amount} posts with hashtag: {hashtag}")
+    medias = cl.hashtag_medias_top(hashtag, amount)
+    logger.info(f"Found {len(medias)} posts with hashtag: {hashtag}")
+
+    posts = []
+    for media in medias:
+        image_url = next((str(resource.thumbnail_url) for resource in media.resources if resource.thumbnail_url), None)
+        if image_url is None:
+            logger.warning(f"No image URL found for post {media.code}")
+            continue
+        posts.append({
+            "shortcode": str(media.code),
+            "caption": str(media.caption_text),
+            "url": f"https://www.instagram.com/p/{media.code}",
+            "date": media.taken_at.isoformat(),
+            "likes": media.like_count,
+            "comments": media.comment_count, 
+            "image_url": image_url,
+        })
+    sleep(3)
+    return posts

@@ -211,6 +211,39 @@ async def save_schedule(schedule_data: list, reply_message, reply_photo):
         logger.error(f"Error saving schedule: {e}", exc_info=True)
         return f"An error occurred while saving the schedule: {e}"
 
+
+async def search_posts_by_hashtag(hashtag: str, reply_message, reply_photo, amount: int = 10):
+    """
+    Searches for posts on Instagram by a given hashtag.
+    """
+    try:
+        logger.info(f"Searching for posts with hashtag: {hashtag}")
+        posts = instagram.search_posts_by_hashtag(hashtag, amount)
+        return json.dumps({
+            "status": "success",
+            "posts": posts
+        })
+    except Exception as e:
+        logger.error(f"Error searching for posts by hashtag: {e}", exc_info=True)
+        return json.dumps({"status": "error", "message": f"An error occurred while searching for posts: {e}"})
+
+
+async def describe_image(image_url: str, reply_message, reply_photo, question: str = "What’s in this image?"):
+    """
+    Describes an image from a URL.
+    """
+    try:
+        logger.info(f"Describing image from URL: {image_url}")
+        description = image_utils.describe_image_from_url(image_url, question=question)
+        return json.dumps({
+            "status": "success",
+            "description": description
+        })
+    except Exception as e:
+        logger.error(f"Error describing image: {e}", exc_info=True)
+        return json.dumps({"status": "error", "message": f"An error occurred while describing the image: {e}"})
+
+
 # --- Agent Dialogue Flow ---
 
 async def weekly_planning(reply_message, reply_photo, auto_mode: bool = False, context: dict = None):  
@@ -232,6 +265,8 @@ TOOLS = {
     "save_post_draft": {"type": "function", "function": {"name": "save_post_draft", "description": "Saves a generated post (idea, text, and image) as a draft for review. Never call this tool if you didn't generate the image first.", "parameters": {"type": "object", "properties": {"idea": {"type": "string"}, "post_text": {"type": "string"}, "image_path": {"type": "string"}}, "required": ["idea", "post_text", "image_path"]}}},
     "publish_post": {"type": "function", "function": {"name": "publish_post", "description": "Publishes a staged post draft to Instagram. Never call this tool if you didn't save the post draft first. Also, never call this tool if you don't have an explicit confirmation from user that they want to publish the post.", "parameters": {"type": "object", "properties": {"post_directory_name": {"type": "string", "description": "The name of the post directory inside 'data/future_posts' to publish."}}, "required": ["post_directory_name"]}}},
     "list_drafted_posts": {"type": "function", "function": {"name": "list_drafted_posts", "description": "Lists all previously drafted posts that are pending for review or publishing."}},
+    "search_posts_by_hashtag": {"type": "function", "function": {"name": "search_posts_by_hashtag", "description": "Searches for 10 posts on Instagram by a given hashtag. It returns a list of posts, with likes, text, image url, and comments number.", "parameters": {"type": "object", "properties": {"hashtag": {"type": "string", "description": "The hashtag to search for, without the '#' symbol."}, "amount": {"type": "integer", "description": "The number of posts to search for."}}, "required": ["hashtag"]}}},
+    "describe_image": {"type": "function", "function": {"name": "describe_image", "description": "Describes an image from a URL.", "parameters": {"type": "object", "properties": {"image_url": {"type": "string", "description": "The URL of the image to describe."}, "question": {"type": "string", "description": "The question to ask about the image."}}, "required": ["image_url", "question"]}}},
 }
 
 async def agentic_flow(text: str, context: dict, reply_message, reply_photo, auto_mode: bool = False, tools: list = None, model: str = "gpt-4o-mini"):
@@ -290,7 +325,9 @@ async def agentic_flow(text: str, context: dict, reply_message, reply_photo, aut
                 "generate_post_image": generate_post_image,
                 "save_post_draft": save_post_draft,
                 "list_drafted_posts": list_drafted_posts,
-                "publish_post": publish_post
+                "publish_post": publish_post,
+                "search_posts_by_hashtag": search_posts_by_hashtag,
+                "describe_image": describe_image,
             }
 
             for tool_call in tool_calls:
@@ -332,13 +369,37 @@ async def agentic_flow(text: str, context: dict, reply_message, reply_photo, aut
             response = response_message.content
         
         print(">>>>>", response)
-        response = json.loads(response)
+        # Find JSON content in the response using regex, handling multiline JSON
+        import re
+        json_match = re.search(r'\{.*\}', response, re.DOTALL)
+        if json_match:
+            response = json.loads(json_match.group())
+        else:
+            logger.warning("No JSON found in response, using raw response")
+            response = {"text_response": response}
 
         say = f"🤖 {response['text_response']}\n"
         if 'current_step' in response:
             say += f"🔍 {response['current_step']}\n"
         if 'next_step' in response:
             say += f"🔍 {response['next_step']}\n"
+
+        # Add todo_list output with emoji for status
+        if 'todo_list' in response and response['todo_list']:
+            say += "\n📝 To-Do List:\n"
+            status_emoji = {
+                'done': '✅',
+                'in_progress': '🔄',
+                'pending': '📋'
+            }
+            for item in response['todo_list']:
+                emoji = status_emoji.get(item.get('status', 'pending'), '⏳')
+                desc = item.get('description', '')
+                comments = item.get('comments', '')
+                if comments:
+                    say += f"{emoji} {desc} — {comments}\n"
+                else:
+                    say += f"{emoji} {desc}\n"
 
         if 'can_continue' not in response or not response['can_continue']:
             await reply_message(say)

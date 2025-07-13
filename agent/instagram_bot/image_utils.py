@@ -1,9 +1,74 @@
 import io
 import logging
 import os
+import base64
+from time import sleep
 from PIL import Image, ImageOps
+import httpx
+from openai import OpenAI
+from .config import OPENAI_API_KEY
 
 logger = logging.getLogger(__name__)
+
+# Initialize OpenAI client
+client = OpenAI(api_key=OPENAI_API_KEY)
+
+def describe_image_from_url(image_url: str, question: str = "What’s in this image?") -> str:
+    """
+    Describes an image from a URL using OpenAI's vision model.
+    """
+    # Download image from URL
+    sleep(5)
+    response = httpx.get(image_url)
+    image_data = response.content
+
+    # Resize image to 320x320
+    image_data = resize_image(image_data, 320, 320)
+
+    # Encode image to base64
+    encoded_image = base64.b64encode(image_data).decode('utf-8')
+
+    try:
+        logger.info(f"Describing image from URL: {image_url}")
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": question},
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": f"data:image/png;base64,{encoded_image}"},
+                        },
+                    ],
+                }
+            ],
+            max_tokens=300,
+        )
+        description = response.choices[0].message.content
+        logger.info(f"Image description: {description}")
+        return description
+    except Exception as e:
+        logger.error(f"Failed to describe image: {e}")
+        raise
+
+def resize_image(image_data: bytes, width: int, height: int) -> bytes:
+    """
+    Resizes an image to the given width and height.
+    Returns bytes in PNG, JPEG, GIF or WebP format.
+    """
+    image = Image.open(io.BytesIO(image_data))
+    image = image.resize((width, height), Image.Resampling.LANCZOS)
+    output = io.BytesIO()
+    
+    # Try to maintain original format if it's one of the supported ones
+    format = image.format.lower() if image.format else 'png'
+    if format not in ['png', 'jpeg', 'gif', 'webp']:
+        format = 'png'
+        
+    image.save(output, format=format)
+    return output.getvalue()
 
 def image_preprocessing(image_data: bytes) -> bytes:
     """
