@@ -10,6 +10,6 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 ADMIN_TELEGRAM_ID = os.getenv("ADMIN_TELEGRAM_ID")
 
 SAVED_PROMPTS = {
-    "WEEKLY_PLANNING": "Follow the `weekly_planning_guide.md` to generate a schedule for the next week.",
+    "WEEKLY_PLANNING": "Follow the `weekly_planning_guide.md` to generate a schedule for the next week. Read the `create_post.md` guide before generating posts.",
     "STORY_POSTING": "Follow the `create_story_repost.md` to post exactly one story."
 }
