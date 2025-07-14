@@ -380,6 +380,9 @@ async def agentic_flow(text: str, context: dict, reply_message, reply_photo, aut
             response = {"text_response": response}
 
         say = f"🤖 {response['text_response']}\n"
+        # Show end_goal if present
+        if 'end_goal' in response and response['end_goal']:
+            say += f"🎯 End Goal: {response['end_goal']}\n"
         if 'current_step' in response:
             say += f"🔍 {response['current_step']}\n"
         if 'next_step' in response:

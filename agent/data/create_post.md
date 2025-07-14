@@ -35,11 +35,16 @@ This guide defines the step-by-step process for generating a new Instagram post 
 
 ## Step 2: Generate Images
 
+**CRITICAL: NO TEXT ALLOWED IN IMAGES**
+
 - Create a detailed prompt in English for an image generation model, based on the post text generated in Step 1.
 - The prompt should describe a photorealistic, warm, nostalgic, professional image.
-- Do not include any text in the image, never!
 - The image prompt itself must never mention or request any text, writing, letters, captions, or words to appear in the image. The prompt should be about the visual scene only, with no reference to text in any form.
-- The prompt must explicitly include an instruction such as: "no text, no writing, no letters, no captions, no words in the image."
+- **MANDATORY: The prompt in the `generate_post_image` tool must explicitly include this instruction: "no text, no writing, no letters, no captions, no words in the image."**
+- Example of a CORRECT image prompt for `generate_post_image` tool:
+  ```
+  "some prompt about an image, setting etc..., no text, no writing, no letters, no captions, no words in the image."
+  ```
 
 ## Step 3: Save Posts Drafts
 
@@ -69,6 +74,7 @@ This guide defines the step-by-step process for generating a new Instagram post 
 - Always follow steps in order.
 - Use only categories and example ideas from `content_plan.md` for post captions.
 - The post caption (including idea and text) must be generated before the image prompt, and the image prompt must be based on the post caption.
+- **CRITICAL: Image prompts must be in English and must explicitly include "no text, no writing, no letters, no captions, no words in the image."**
 - Only output or save as instructed.
 - When saving post drafts, always output a JSON list of the post directory names (post IDs).
 - Never publish content.

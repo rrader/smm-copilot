@@ -1,6 +1,10 @@
 # Weekly Planning Guide (Agent Instructions)
 
 This guide defines the step-by-step process for creating a weekly content schedule. Follow each step in order. Do not skip or combine steps. Do not publish any posts; only plan and save drafts and schedules.
+**Your final goal is to save the weekly schedule with the drafted posts.**
+
+**IMPORTANT:** The `content_plan.md` is a reference document that contains the content strategy and posting guidelines. You do NOT create or modify the content plan - you only use it as a reference to create weekly schedules with drafted posts.
+
 
 ## Step 1: Review Content Plan and History
 
@@ -24,8 +28,9 @@ This guide defines the step-by-step process for creating a weekly content schedu
 ## Step 3: Generate Weekly Post Drafts
 
 - Before generating new content, check for existing drafts using the `list_drafted_posts` tool. If suitable drafts already exist, reuse them in the weekly plan.
+- **MANDATORY:** Read the `create_post.md` guide BEFORE generating any posts. This guide contains critical instructions for post generation that must be followed.
 - For each planned post (if no suitable draft exists):
-  1. Follow `create_post.md`.
+  1. Follow the `create_post.md` instructions exactly
   2. Generate the draft. Do not publish.
 - Output a list of generated post directories with their planned schedule:
 
@@ -36,7 +41,7 @@ This guide defines the step-by-step process for creating a weekly content schedu
   ]
 }
 
-## Step 4: Weekly Schedule Format
+## Step 4: Save the schedule of posts for the week
 
 - When all drafts are ready, save the schedule:
 
@@ -51,58 +56,3 @@ This guide defines the step-by-step process for creating a weekly content schedu
 - Do not call any publish or posting tools.
 
 ### Example (weekly plan with sub-items for multiple posts)
-```
-{
-  "text_response": "Генерую тижневий план і створюю чернетки постів.",
-  "can_continue": true,
-  "current_step": "Генерація чернеток постів для тижневого плану.",
-  "next_action": "Створити чернетку для кожного запланованого посту.",
-  "end_goal": "Створити тижневий контент-план з чернетками постів.",
-  "todo_list": [
-    {
-      "description": "Синхронізувати історію постів і прочитати content_plan.md (лише один раз)",
-      "status": "done",
-      "comments": "Історія постів синхронізована, контент-план прочитано. Тепер генеруємо пости."
-    },
-    {
-      "description": "Запланувати пости на тиждень згідно з content_plan.md",
-      "status": "done", 
-      "comments": "Заплановано 3 пости: понеділок 15:00 - про оцифрування, середа 12:00 - про плівкову фотографію, п'ятниця 18:00 - про ретро камери"
-    },
-    {  // для кожного посту
-      "description": "Згенерувати чернетку поста #1 для тижневого плану.",
-      "status": "in_progress",
-      "sub_items": [
-        {
-          "description": "Згенерувати текст посту.",
-          "status": "in_progress",
-          "comments": ""
-        },
-        {
-          "description": "Згенерувати зображення.",
-          "status": "pending"
-        },
-        {
-          "description": "Зберегти чернетку посту.",
-          "status": "pending"
-        }
-      ]
-    },
-    {
-      "description": "Згенерувати чернетку поста #2 (аналогічні під-кроки)",
-      "status": "pending",
-      "sub_items": [
-        // ... аналогічна структура підкроків для другого посту ...
-      ]
-    }
-  ]
-}
-```
-
----
-
-**Summary:**
-- Always follow steps in order.
-- Only output as instructed.
-- Never publish content.
-- Wait until all drafts are generated before creating the schedule format.
