@@ -1,7 +1,7 @@
 python-telegram-bot
 python-dotenv
 instagrapi
-Pillow>=8.1.1
+Pillow==8.1.1
 openai
 httpx
 schedule

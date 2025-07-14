@@ -160,6 +160,7 @@ def search_posts_by_hashtag(hashtag: str, amount: int = 5):
     Returns a list of 5 posts with their likes, text, image url, and comments number.
     """
     cl = get_instagram_client()
+    sleep(5)
     logger.info(f"Searching for {amount} posts with hashtag: {hashtag}")
     medias = cl.hashtag_medias_top(hashtag, amount)
     logger.info(f"Found {len(medias)} posts with hashtag: {hashtag}")
