@@ -5,6 +5,10 @@
 
 This guide defines the step-by-step process for creating a weekly content schedule. Follow each step in order. Do not skip or combine steps. 
 
+**🚨 CRITICAL TIMING: SCHEDULE IS SAVED ONLY AT THE VERY END 🚨**
+**🚨 DO NOT SAVE SCHEDULE DURING PLANNING OR DRAFTING STEPS 🚨**
+**🚨 ONLY SAVE SCHEDULE AFTER ALL DRAFTS ARE COMPLETED 🚨**
+
 **ABSOLUTELY FORBIDDEN TOOLS:**
 - ❌ `publish_post` tool - NEVER use this
 - ❌ Any tool with "publish" in the name - NEVER use this
@@ -14,7 +18,7 @@ This guide defines the step-by-step process for creating a weekly content schedu
 - ✅ `save_post_draft` tool - for creating drafts only
 - ✅ `get_history` tool - for retrieving history
 - ✅ `list_drafted_posts` tool - for checking existing drafts
-- ✅ `save_schedule` tool - for saving the final schedule, but only after you have the draft posts to schedule.
+- ✅ `save_schedule` tool - for saving the final schedule, but **ONLY AFTER ALL DRAFTS ARE CREATED**
 
 **CONSEQUENCES OF PUBLISHING:** If you publish any posts during this process, you will have failed the task completely and must start over.
 
@@ -24,12 +28,20 @@ This guide defines the step-by-step process for creating a weekly content schedu
 
 **CRITICAL REQUIREMENT:** You must complete ALL post drafts before saving the schedule. Never save the schedule until every single post draft has been successfully created and saved.
 
+**SCHEDULE SAVING TIMING:**
+- ❌ DO NOT save schedule during Step 1 (Review)
+- ❌ DO NOT save schedule during Step 2 (Plan) 
+- ❌ DO NOT save schedule during Step 3 (Drafts) - even if some drafts are done
+- ✅ ONLY save schedule in Step 4 (Final Step) - after ALL drafts are complete
+
 **AUTOMATIC EXECUTION:** Execute all steps automatically without waiting for user input. Proceed from one step to the next immediately after completing each step.
 
-**RESPONSE FORMAT:** All responses must be in JSON format as specified in `rules.md`. Never output todo lists in text format - always use the proper JSON structure with `todo_list` array containing objects with `description`, `status`, `comments`, and optional `sub_items` fields.
+**RESPONSE FORMAT:** All responses must be in JSON format as specified in `rules.md`. Never output todo lists in text format - always use the proper JSON structure with `список_задач` array containing objects with `опис`, `status`, `comments`, and optional `під_задачі` fields.
 
 
 ## Step 1: Review Content Plan and History
+
+**🚨 DO NOT SAVE SCHEDULE IN THIS STEP 🚨**
 
 1. Read `content_plan.md` to get:
    - Content categories and frequencies
@@ -39,6 +51,8 @@ This guide defines the step-by-step process for creating a weekly content schedu
 3. **Proceed immediately to Step 2 after completing this review.**
 
 ## Step 2: Plan the Week
+
+**🚨 DO NOT SAVE SCHEDULE IN THIS STEP 🚨**
 
 - Generate a weekly plan based on the content plan and recent schedule.
 - Output it to the comments of the current step in this format:
@@ -54,6 +68,7 @@ This guide defines the step-by-step process for creating a weekly content schedu
 ## Step 3: Generate Weekly Post Drafts
 
 **🚨 REMINDER: DO NOT PUBLISH ANY POSTS - ONLY CREATE DRAFTS 🚨**
+**🚨 DO NOT SAVE SCHEDULE IN THIS STEP - EVEN IF SOME DRAFTS ARE DONE 🚨**
 
 - Before generating new content, check for existing drafts using the `list_drafted_posts` tool. If suitable drafts already exist, reuse them in the weekly plan.
 - **MANDATORY:** Read the `create_post.md` guide BEFORE generating any posts. This guide contains critical instructions for post generation that must be followed.
@@ -74,12 +89,14 @@ This guide defines the step-by-step process for creating a weekly content schedu
 - Double-check that NO posts were published
 - Confirm all posts exist as drafts only
 - Verify you have not used any publish tools
+- **VERIFY:** You have NOT saved the schedule yet - that happens only in Step 4
 
 Before proceeding to Step 4, ensure that ALL post drafts have been successfully created and saved.
 
 ## Step 4: Save the schedule of posts for the week
 
 **🚨 FINAL WARNING: DO NOT PUBLISH - ONLY SAVE THE SCHEDULE 🚨**
+**🚨 THIS IS THE ONLY STEP WHERE YOU SAVE THE SCHEDULE 🚨**
 
 **Only proceed to this step after ALL post drafts have been successfully created and saved.**
 
@@ -107,47 +124,47 @@ Before proceeding to Step 4, ensure that ALL post drafts have been successfully 
 
 ```json
 {
-  "text_response": "Starting weekly planning process",
+  "text_response": "Початок процесу планування тижня",
   "can_continue": true,
-  "current_step": "Reviewing content plan and history",
-  "next_action": "Generate weekly plan based on content strategy",
-  "end_goal": "Create and save weekly content schedule with drafted posts",
+  "current_step": "Перегляд плану контенту та історії",
+  "next_action": "Створити список постів для генерації на основі контент-стратегії",
+  "end_goal": "Створити та зберегти тижневий графік контенту з чернетками постів",
   "todo_list": [
     {
-      "description": "Read content_plan.md to understand content categories, frequencies, and posting times",
+      "description": "Прочитати content_plan.md для розуміння категорій контенту, частот та часу публікацій",
       "status": "done",
-      "comments": "Content plan reviewed: 3 posts per week, mix of educational and showcase content"
+      "comments": "План контенту переглянуто: 3 пости на тиждень, мікс навчального та демонстраційного контенту"
     },
     {
-      "description": "Review previous schedule to ensure variety and proper spacing using `get_history`, check the already planned posts with `list_drafted_posts` and reuse if needed",
+      "description": "Переглянути попередній графік для забезпечення різноманітності та правильного інтервалування використовуючи `get_history`, перевірити вже заплановані пости з `list_drafted_posts` та повторно використати якщо потрібно",
       "status": "done", 
-      "comments": "Previous schedule checked: last post was showcase, next should be educational"
+      "comments": "Попередній графік перевірено: останній пост був демонстраційним, наступний має бути навчальним"
     },
     {
-      "description": "Generate weekly plan based on content plan and recent schedule",
+      "description": "Створити тижневий план на основі плану контенту та нещодавнього графіку",
       "status": "in_progress",
-      "comments": "Planning posts for Wednesday and Saturday"
+      "comments": "Я створю пости для середови та суботи"
     },
     {
-      "description": "Generate weekly post drafts",
+      "description": "Створити тижневі чернетки постів",
       "status": "pending",
-      "sub_items": [
+      "під_задачі": [
         {
-          "description": "Create Wednesday showcase post with before/after examples", 
+          "description": "Створити демонстраційний пост для середови з прикладами до/після", 
           "status": "pending",
           "comments": ""
         },
         {
-          "description": "Create Saturday tips post about film preservation",
+          "description": "Створити пост з порадами для суботи про збереження плівки",
           "status": "pending", 
           "comments": ""
         }
       ]
     },
     {
-      "description": "Save weekly schedule with drafted posts",
+      "description": "Зберегти тижневий графік з чернетками постів",
       "status": "pending",
-      "comments": "Only proceed after all drafts are created"
+      "comments": "Продовжувати тільки після створення всіх чернеток"
     }
   ]
 }
@@ -158,6 +175,7 @@ Before proceeding to Step 4, ensure that ALL post drafts have been successfully 
 ## SUMMARY: Key Rules to Remember
 
 **🚨 NEVER PUBLISH - ONLY DRAFT AND SCHEDULE 🚨**
+**🚨 SCHEDULE IS SAVED ONLY AT THE VERY END 🚨**
 
 1. **Tool Restrictions:**
    - ✅ Use: `create_post`, `list_drafted_posts`, `save_schedule`
@@ -166,13 +184,22 @@ Before proceeding to Step 4, ensure that ALL post drafts have been successfully 
 2. **Process Flow:**
    - Create drafts only → Save schedule → Done
    - No publishing at any step
+   - **Schedule saved ONLY in final step**
 
 3. **Verification Points:**
    - After each post creation: verify it's a draft
    - Before Step 4: double-check no publishing occurred
+   - Before Step 4: verify schedule has NOT been saved yet
    - Final step: only save schedule, never publish
 
 4. **Success Criteria:**
    - All posts exist as drafts
-   - Weekly schedule is saved
+   - Weekly schedule is saved (only in Step 4)
    - Zero posts were published
+   - Schedule was saved only once, at the very end
+
+5. **Timing Rules:**
+   - ❌ Step 1: No schedule saving
+   - ❌ Step 2: No schedule saving  
+   - ❌ Step 3: No schedule saving (even if some drafts are done)
+   - ✅ Step 4: Only step where schedule is saved
