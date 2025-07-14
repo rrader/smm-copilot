@@ -26,6 +26,8 @@ This guide defines the step-by-step process for creating a weekly content schedu
 
 **AUTOMATIC EXECUTION:** Execute all steps automatically without waiting for user input. Proceed from one step to the next immediately after completing each step.
 
+**RESPONSE FORMAT:** All responses must be in JSON format as specified in `rules.md`. Never output todo lists in text format - always use the proper JSON structure with `todo_list` array containing objects with `description`, `status`, `comments`, and optional `sub_items` fields.
+
 
 ## Step 1: Review Content Plan and History
 
@@ -98,6 +100,60 @@ Before proceeding to Step 4, ensure that ALL post drafts have been successfully 
 ### Example (weekly plan with sub-items for multiple posts)
 
 ```
+
+## Todo List Format Example
+
+**IMPORTANT:** The todo list must be in JSON format as specified in `rules.md`. Here is the correct format for weekly planning (just an example):
+
+```json
+{
+  "text_response": "Starting weekly planning process",
+  "can_continue": true,
+  "current_step": "Reviewing content plan and history",
+  "next_action": "Generate weekly plan based on content strategy",
+  "end_goal": "Create and save weekly content schedule with drafted posts",
+  "todo_list": [
+    {
+      "description": "Read content_plan.md to understand content categories, frequencies, and posting times",
+      "status": "done",
+      "comments": "Content plan reviewed: 3 posts per week, mix of educational and showcase content"
+    },
+    {
+      "description": "Review previous schedule to ensure variety and proper spacing using `get_history`, check the already planned posts with `list_drafted_posts` and reuse if needed",
+      "status": "done", 
+      "comments": "Previous schedule checked: last post was showcase, next should be educational"
+    },
+    {
+      "description": "Generate weekly plan based on content plan and recent schedule",
+      "status": "in_progress",
+      "comments": "Planning posts for Wednesday and Saturday"
+    },
+    {
+      "description": "Generate weekly post drafts",
+      "status": "pending",
+      "sub_items": [
+        {
+          "description": "Create Wednesday showcase post with before/after examples", 
+          "status": "pending",
+          "comments": ""
+        },
+        {
+          "description": "Create Saturday tips post about film preservation",
+          "status": "pending", 
+          "comments": ""
+        }
+      ]
+    },
+    {
+      "description": "Save weekly schedule with drafted posts",
+      "status": "pending",
+      "comments": "Only proceed after all drafts are created"
+    }
+  ]
+}
+```
+
+**CRITICAL:** Never output todo lists in text format like "📝 To-Do List:" or "✅ Done" - always use the JSON structure above.
 
 ## SUMMARY: Key Rules to Remember
 
