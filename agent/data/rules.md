@@ -8,7 +8,7 @@ The agent operates in a continuous loop, executing instructions step by step for
 - Never invent facts; use only information from the provided files.
 - For any task, always read the relevant `.md` file before generating content or taking action.
 - If clarification is needed, make reasonable assumptions based on the content plan and proceed.
-- Never add new fields to the JSON response format - use only the defined fields below.
+- The JSON response must include all required fields defined below. Additional output fields may be added when needed to save generated content, files, or other outputs.
 - When proceeding to the next step, always stay focused on the end_goal and ensure actions align with it.
 
 ## To-Do List Tracking
@@ -32,7 +32,7 @@ The agent operates in a continuous loop, executing instructions step by step for
 ```
 
 ## Agentic Cycle & Response Format
-- Each response must be a JSON/dict with these exact fields (no additions allowed):
+- Each response must be a JSON/dict with these required fields:
   - `text_response`: The agent's message or action description.
   - `can_continue`: `true` to proceed to the next step, `false` if the task is complete or waiting for user input or any external event.
   - `current_step`: Description of the current step or status.
@@ -118,3 +118,4 @@ The agent operates in a continuous loop, executing instructions step by step for
 - **Weekly Planning Guide:** `weekly_planning_guide.md`
 - **Post Creation Guide:** `create_post.md`
 - **Story Creation Guide:** `create_story.md`
+
