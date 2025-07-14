@@ -56,6 +56,55 @@ This guide defines the step-by-step process for creating a weekly content schedu
 - Save this file using the save_data_file function.
 - Do not call any publish or posting tools.
 
+### Example (weekly plan with sub-items for multiple posts)
+```
+{
+  "text_response": "Генерую тижневий план і створюю чернетки постів.",
+  "can_continue": true,
+  "current_step": "Генерація чернеток постів для тижневого плану.",
+  "next_action": "Створити чернетку для кожного запланованого посту.",
+  "end_goal": "Створити тижневий контент-план з чернетками постів.",
+  "todo_list": [
+    {
+      "description": "Синхронізувати історію постів і прочитати content_plan.md (лише один раз)",
+      "status": "done",
+      "comments": "Історія постів синхронізована, контент-план прочитано. Тепер генеруємо пости."
+    },
+    {
+      "description": "Запланувати пости на тиждень згідно з content_plan.md",
+      "status": "done", 
+      "comments": "Заплановано 3 пости: понеділок 15:00 - про оцифрування, середа 12:00 - про плівкову фотографію, п'ятниця 18:00 - про ретро камери"
+    },
+    {  // для кожного посту
+      "description": "Згенерувати чернетку поста #1 для тижневого плану.",
+      "status": "in_progress",
+      "sub_items": [
+        {
+          "description": "Згенерувати текст посту.",
+          "status": "in_progress",
+          "comments": ""
+        },
+        {
+          "description": "Згенерувати зображення.",
+          "status": "pending"
+        },
+        {
+          "description": "Зберегти чернетку посту.",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "description": "Згенерувати чернетку поста #2 (аналогічні під-кроки)",
+      "status": "pending",
+      "sub_items": [
+        // ... аналогічна структура підкроків для другого посту ...
+      ]
+    }
+  ]
+}
+```
+
 ---
 
 **Summary:**

@@ -18,8 +18,9 @@ The agent operates in a continuous loop, executing instructions step by step for
   - `description`: What the step is.
   - `status`: One of `pending`, `in_progress`, or `done`.
   - `comments`: (Optional) Any notes, context, or results for this step.
-- The agent updates the `todo_list` on each step, marking items as `in_progress` or `done` and adding comments as needed.
-- The `current_step` and `next_action` fields should reference the relevant to-do item.
+  - `sub_items`: (Optional) Array of sub-tasks, each with the same structure as a main todo item. Sub-items can be added or modified as new information becomes available during task execution.
+- The agent updates the `todo_list` on each step, marking items and sub-items as `in_progress` or `done` and adding comments as needed.
+- The `current_step` and `next_action` fields should reference the relevant to-do item or sub-item.
 
 ### Example To-Do List Item
 ```
