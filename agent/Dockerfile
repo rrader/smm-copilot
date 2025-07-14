@@ -6,6 +6,8 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y imagemagick
 
+COPY ./imagemagick-policy.xml /etc/ImageMagick-6/policy.xml
+
 # Copy requirements and install dependencies
 COPY instagram_bot/requirements.txt ./instagram_bot/requirements.txt
 RUN pip install --no-cache-dir -r instagram_bot/requirements.txt
