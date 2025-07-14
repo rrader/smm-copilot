@@ -5,8 +5,6 @@ from datetime import datetime
 from functools import wraps, partial
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, ContextTypes, filters, ConversationHandler
-import json
-from pathlib import Path
 import schedule
 
 from .config import TELEGRAM_TOKEN, ADMIN_TELEGRAM_ID, SAVED_PROMPTS
@@ -49,6 +47,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 Available commands:
 /help - Show this help message
 /schedule - Show the scheduled tasks
+/reload_all_tasks - Reload all tasks
 /run_saved_flow <saved_flow_name> - Run the saved flow, e.g. /run_saved_flow WEEKLY_PLANNING
 /list_future - List scheduled future posts
 /delete_future_post <post_dir_name> - Delete a scheduled future post
@@ -227,6 +226,14 @@ async def run_saved_flow(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     )
 
 
+@admin_only
+async def reload_all_tasks(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    logger.info(f"Received /reload_all_tasks command from {update.effective_user.name}")
+    from .scheduler import reload_all_tasks
+    reload_all_tasks()
+    await update.message.reply_text("All tasks reloaded.")
+
+
 def run_bot():
     logger.info("Starting telegram bot polling...")
     application = Application.builder().token(TELEGRAM_TOKEN).build()
@@ -246,6 +253,7 @@ def run_bot():
     application.add_handler(CommandHandler("delete_future_post", delete_future_post))
     application.add_handler(CommandHandler("post", post))
     application.add_handler(CommandHandler("schedule", schedule_command))
+    application.add_handler(CommandHandler("reload_all_tasks", reload_all_tasks))
     application.add_handler(CommandHandler("run_saved_flow", run_saved_flow))
 
     application.run_polling()
