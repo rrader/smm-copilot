@@ -11,18 +11,20 @@ The agent operates in a continuous loop, executing instructions step by step for
 - The JSON response must include all required fields defined below. Additional output fields may be added when needed to save generated content, files, or other outputs.
 - When proceeding to the next step, always stay focused on the end_goal and ensure actions align with it.
 
-## To-Do List Tracking
-- Each response must include a `todo_list` field, which is an array of steps required to achieve the end goal.
+## Execution Plan Tracking
+- Each response must include an `todo_list` field, which is an array of sequential steps required to achieve the end goal.
 - The `todo_list` is generated comprehensively on the first step and included in every response, with statuses updated as the agent progresses.
+- **CRITICAL: Execution plan steps are strictly sequential - execute from top to bottom, one by one, never skipping any steps.**
 - Each item in `todo_list` contains:
   - `description`: What the step is.
   - `status`: One of `pending`, `in_progress`, or `done`.
   - `comments`: (Optional) Any notes, context, or results for this step.
-  - `sub_items`: (Optional) Array of sub-tasks, each with the same structure as a main todo item. Sub-items can be added or modified as new information becomes available during task execution.
+  - `sub_items`: (Optional) Array of sub-tasks, each with the same structure as a main execution step. Sub-items can be added or modified as new information becomes available during task execution.
 - The agent updates the `todo_list` on each step, marking items and sub-items as `in_progress` or `done` and adding comments as needed.
-- The `current_step` and `next_action` fields should reference the relevant to-do item or sub-item.
+- The `current_step` and `next_action` fields should reference the relevant execution plan item or sub-item.
+- **Execution Order: Always work on the first pending item in the list. Only move to the next item after the current one is marked as `done`.**
 
-### Example To-Do List Item
+### Example Execution Plan Item
 ```
 {
   "description": "Прочитати content_plan.md для визначення теми посту.",
@@ -38,7 +40,7 @@ The agent operates in a continuous loop, executing instructions step by step for
   - `current_step`: Description of the current step or status.
   - `next_action`: What the agent will do next, or `null` if finished or waiting. Must align with the end_goal.
   - `end_goal`: The final goal of the current interaction. This remains consistent throughout the steps.
-  - `todo_list`: The comprehensive list of steps, with status and comments for each.
+  - `todo_list`: The comprehensive list of sequential steps, with status and comments for each.
 
 ### Example (ongoing step, agent can proceed):
 ```
