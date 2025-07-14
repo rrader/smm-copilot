@@ -406,14 +406,22 @@ async def agentic_flow(text: str, context: dict, reply_message, reply_photo, aut
                 'in_progress': '🔄',
                 'pending': '📋'
             }
-            for item in response['todo_list']:
+            def format_todo_item(item, indent=0):
                 emoji = status_emoji.get(item.get('status', 'pending'), '⏳')
                 desc = item.get('description', '')
                 comments = item.get('comments', '')
+                prefix = '  ' * indent
+                line = f"{prefix}{emoji} {desc}"
                 if comments:
-                    say += f"{emoji} {desc} — {comments}\n"
-                else:
-                    say += f"{emoji} {desc}\n"
+                    line += f" — {comments}"
+                line += "\n"
+                # Handle sub_items recursively
+                sub_items = item.get('sub_items', [])
+                for sub_item in sub_items:
+                    line += format_todo_item(sub_item, indent + 1)
+                return line
+            for item in response['todo_list']:
+                say += format_todo_item(item)
 
         if 'can_continue' not in response or not response['can_continue']:
             await reply_message(say)
