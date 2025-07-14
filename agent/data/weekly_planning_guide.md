@@ -87,7 +87,7 @@ Before proceeding to Step 4, ensure that ALL post drafts have been successfully 
   {
     "task_name": "task_post", 
     "schedule": {"unit": "weeks", "day": "monday", "at": "12:00"},
-    "task_args": {"post_directory_name": "post_20250710_142125"}
+    "task_args": {"post_directory_name": "post_20250710_142125"}  // post_directory_name is a real directory name, which is returned by `safe_post_draft` tool, or `list_drafted_posts` tool. Never invent it!
   },
   ...
 ]
@@ -104,7 +104,7 @@ Before proceeding to Step 4, ensure that ALL post drafts have been successfully 
 **🚨 NEVER PUBLISH - ONLY DRAFT AND SCHEDULE 🚨**
 
 1. **Tool Restrictions:**
-   - ✅ Use: `create_post`, `list_drafted_posts`, `save_weekly_schedule`
+   - ✅ Use: `create_post`, `list_drafted_posts`, `save_schedule`
    - ❌ Never use: `publish_post`, `publish_scheduled_post`, or any publish tools
 
 2. **Process Flow:**
