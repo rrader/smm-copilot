@@ -36,7 +36,7 @@ This guide defines the step-by-step process for creating a weekly content schedu
 
 **AUTOMATIC EXECUTION:** Execute all steps automatically without waiting for user input. Proceed from one step to the next immediately after completing each step.
 
-**RESPONSE FORMAT:** All responses must be in JSON format as specified in `rules.md`. Never output todo lists in text format - always use the proper JSON structure with `список_задач` array containing objects with `опис`, `status`, `comments`, and optional `під_задачі` fields.
+**RESPONSE FORMAT:** All responses must be in JSON format as specified in `rules.md`. Never output todo lists in text format - always use the proper JSON structure with `todo_list` array containing objects with `description`, `status`, `comments`, and optional `sub_items` fields.
 
 
 ## Step 1: Review Content Plan and History
