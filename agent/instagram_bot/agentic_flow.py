@@ -48,7 +48,7 @@ def llm_generate_post_image(image_prompt: str) -> bytes:
             model="gpt-image-1",
             prompt=image_prompt,
             size="1024x1024",
-            quality="low",
+            quality="high",
             n=1
         )
         image_data = b64decode(response.data[0].b64_json)
