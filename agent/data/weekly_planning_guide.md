@@ -13,7 +13,7 @@ This guide defines the step-by-step process for creating a weekly content schedu
 ## Step 2: Plan the Week
 
 - Generate a weekly plan based on the content plan and recent schedule.
-- Output the plan in this format (do not save):
+- Output the plan in this format:
 
   monday:
     - post category about X
@@ -21,16 +21,13 @@ This guide defines the step-by-step process for creating a weekly content schedu
     - nothing
   ...
 
-- Do not proceed until the plan is output.
-
 ## Step 3: Generate Weekly Post Drafts
 
-- **Before generating new content, check for existing drafts using the `list_drafted_posts` tool.** If suitable drafts already exist, you can reuse them in the weekly plan instead of creating new ones.
-
+- Before generating new content, check for existing drafts using the `list_drafted_posts` tool. If suitable drafts already exist, reuse them in the weekly plan.
 - For each planned post (if no suitable draft exists):
   1. Follow `create_post.md`.
-  2. Generate the draft and save it. Do not publish.
-- Output a list of generated post directories with their planned schedule (do not save):
+  2. Generate the draft. Do not publish.
+- Output a list of generated post directories with their planned schedule:
 
 {
   "posts": [
@@ -39,11 +36,9 @@ This guide defines the step-by-step process for creating a weekly content schedu
   ]
 }
 
-- Do not proceed until all drafts are generated and output.
+## Step 4: Weekly Schedule Format
 
-## Step 4: Save Weekly Schedule
-
-- When all drafts are ready, create the schedule file `schedule/generated.json` in this format:
+- When all drafts are ready, save the schedule:
 
 [
   {
@@ -53,7 +48,6 @@ This guide defines the step-by-step process for creating a weekly content schedu
   }
 ]
 
-- Save this file using the save_data_file function.
 - Do not call any publish or posting tools.
 
 ### Example (weekly plan with sub-items for multiple posts)
@@ -109,6 +103,6 @@ This guide defines the step-by-step process for creating a weekly content schedu
 
 **Summary:**
 - Always follow steps in order.
-- Only output or save as instructed.
+- Only output as instructed.
 - Never publish content.
-- Wait for all drafts before saving the schedule.
+- Wait until all drafts are generated before creating the schedule format.

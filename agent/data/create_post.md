@@ -38,6 +38,8 @@ This guide defines the step-by-step process for generating a new Instagram post 
 - Create a detailed prompt in English for an image generation model, based on the post text generated in Step 1.
 - The prompt should describe a photorealistic, warm, nostalgic, professional image.
 - Do not include any text in the image, never!
+- The image prompt itself must never mention or request any text, writing, letters, captions, or words to appear in the image. The prompt should be about the visual scene only, with no reference to text in any form.
+- The prompt must explicitly include an instruction such as: "no text, no writing, no letters, no captions, no words in the image."
 
 ## Step 3: Save Posts Drafts
 

@@ -4,6 +4,8 @@ FROM python:3.11-slim
 # Set working directory
 WORKDIR /app
 
+RUN apt-get update && apt-get install -y imagemagick
+
 # Copy requirements and install dependencies
 COPY instagram_bot/requirements.txt ./instagram_bot/requirements.txt
 RUN pip install --no-cache-dir -r instagram_bot/requirements.txt

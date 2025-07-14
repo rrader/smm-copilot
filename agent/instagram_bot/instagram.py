@@ -183,31 +183,7 @@ def search_posts_by_hashtag(hashtag: str, amount: int = 5):
     return posts
 
 
-# def post_repost(post_url: str):
-#     """
-#     Reposts a post from a given URL.
-#     """
-#     cl = get_instagram_client()
-    
-#     media_pk = cl.media_pk_from_url(post_url)
-#     media_path = cl.video_download(media_pk)
-#     # example = cl.user_info_by_username('example')
-#     # hashtag = cl.hashtag_info('dhbastards')
-
-#     cl.video_upload_to_story(
-#         media_path,
-#         # "Credits @example",
-#         # mentions=[StoryMention(user=example, x=0.49892962, y=0.703125, width=0.8333333333333334, height=0.125)],
-#         # links=[StoryLink(webUri='https://github.com/subzeroid/instagrapi')],
-#         # hashtags=[StoryHashtag(hashtag=hashtag, x=0.23, y=0.32, width=0.5, height=0.22)],
-#         medias=[StoryMedia(media_pk=media_pk, x=0.5, y=0.5, width=0.6, height=0.8)],
-#         # polls=[StoryPoll(x = 0.5, y = 0.5, width = 0.7, height = 0.5, question = "Question", options = ["Option 1", "Option 2", "Option 3"])],
-#         extra_data={"audience": "besties"},
-#     )
-#     return True
-
-
-def post_repost_photo(post_url: str):
+def post_repost_photo(post_url: str, caption: str = ""):
     """
     Reposts a photo from a given URL.
     """
@@ -218,10 +194,15 @@ def post_repost_photo(post_url: str):
     except AssertionError:
         media_path = cl.album_download(media_pk)[0]  # Get first photo from album
     
-    cl.photo_upload_to_story(
-        media_path, 
-        caption="Ностальгія. Автор фото @example",
-        medias=[StoryMedia(media_pk=media_pk, x=0.5, y=0.5, width=0.6, height=0.8)],
-        extra_data={"audience": "besties"},
+    buildout = StoryBuilder(
+        media_path,
+        caption,
+        bgpath=Path('data/background1.png')
+    ).photo(15)
+
+    cl.video_upload_to_story(
+        buildout.path, 
+        caption=caption,
+        medias=[StoryMedia(media_pk=media_pk, x=0.5, y=0.5, width=0.6, height=0.8)]
     )
     return True

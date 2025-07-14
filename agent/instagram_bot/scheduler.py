@@ -4,9 +4,9 @@ import logging
 from pathlib import Path
 import json
 from .instagram import make_post
-from .agentic_flow import weekly_planning
+from .agentic_flow import agentic_flow
 from .telegram_bot import APPLICATION
-from .config import ADMIN_TELEGRAM_ID
+from .config import ADMIN_TELEGRAM_ID, SAVED_PROMPTS
 import asyncio
 
 # --- Utility functions for sending messages to admin ---
@@ -26,10 +26,15 @@ async def reply_photo(photo_path: str) -> None:
 
 # --- Task Functions ---
 
-def weekly_planning_task(**kwargs):
+def execute_agentic_flow(prompt=None, saved_prompt=None, **kwargs):
     """Placeholder for the weekly planning task."""
-    logger.info(f"Running weekly_planning_task with args: {kwargs}")
-    asyncio.run(weekly_planning(reply_message, reply_photo, auto_mode=True))
+    if saved_prompt:
+        prompt = SAVED_PROMPTS[saved_prompt]
+
+    logger.info(f"Running execute_agentic_flow with prompt: {prompt}")
+    asyncio.run(agentic_flow(
+        prompt, {}, reply_message, reply_photo, auto_mode=True
+    ))
 
 def publish_post_task(**kwargs):
     """Placeholder for the publish post task."""
@@ -81,14 +86,14 @@ def validate_publish_post_task(task_details: dict) -> bool:
 
 # --- Task Mappings ---
 TASKS = {
-    "weekly_planning_task": weekly_planning_task,
+    "execute_agentic_flow": execute_agentic_flow,
     "task_post": publish_post_task,
     "task_story": publish_story_task,
     "reload_all_tasks": reload_all_tasks,
 }
 
 TASKS_VALIDATION = {
-    "weekly_planning_task": validate_generic_task,
+    "execute_agentic_flow": validate_generic_task,
     "task_post": validate_publish_post_task,
     "task_story": validate_generic_task,
     "reload_all_tasks": validate_generic_task,

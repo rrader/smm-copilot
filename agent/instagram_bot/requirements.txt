@@ -6,4 +6,5 @@ openai
 httpx
 schedule
 pytz
-moviepy>=1.0.3
+moviepy==1.0.3
+opencv-python

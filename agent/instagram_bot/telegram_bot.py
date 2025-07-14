@@ -9,9 +9,9 @@ import json
 from pathlib import Path
 import schedule
 
-from .config import TELEGRAM_TOKEN, ADMIN_TELEGRAM_ID
+from .config import TELEGRAM_TOKEN, ADMIN_TELEGRAM_ID, SAVED_PROMPTS
 from .instagram import make_post
-from .agentic_flow import agentic_flow, weekly_planning
+from .agentic_flow import agentic_flow
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +49,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 Available commands:
 /help - Show this help message
 /schedule - Show the scheduled tasks
-/do_schedule - Run the weekly planning and scheduling
+/run_saved_flow <saved_flow_name> - Run the saved flow, e.g. /run_saved_flow WEEKLY_PLANNING
 /list_future - List scheduled future posts
 /delete_future_post <post_dir_name> - Delete a scheduled future post
 /post <post_dir_name> - Post a future post to Instagram
@@ -206,15 +206,25 @@ async def schedule_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
 
 @admin_only
-async def do_schedule(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    logger.info(f"Received /do_schedule command from {update.effective_user.name}")
+async def run_saved_flow(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    logger.info(f"Received /run_saved_flow command from {update.effective_user.name}")
+
+    if not context.args:
+        await update.message.reply_text("Saved flow name is required.\nUsage: /run_saved_flow <saved_flow_name>\nOptions: " + ", ".join(SAVED_PROMPTS.keys()))
+        return
+
+    saved_flow_name = context.args[0]
+
     async def reply_message(message: str) -> None:
         await update.message.reply_text(message)
     
     async def reply_photo(photo_path: str) -> None:
         await update.message.reply_photo(photo=open(photo_path, "rb"))
     
-    await weekly_planning(reply_message, reply_photo, auto_mode=True, context=context.chat_data)
+    await agentic_flow(
+        SAVED_PROMPTS[saved_flow_name], context.chat_data,
+        reply_message, reply_photo, auto_mode=False
+    )
 
 
 def run_bot():
@@ -236,6 +246,6 @@ def run_bot():
     application.add_handler(CommandHandler("delete_future_post", delete_future_post))
     application.add_handler(CommandHandler("post", post))
     application.add_handler(CommandHandler("schedule", schedule_command))
-    application.add_handler(CommandHandler("do_schedule", do_schedule))
+    application.add_handler(CommandHandler("run_saved_flow", run_saved_flow))
 
     application.run_polling()

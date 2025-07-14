@@ -1,10 +1,10 @@
 # Create Story Guide (Agent Instructions)
 
-This guide defines the step-by-step process for generating a new Instagram Story draft by researching and reposting suitable content. Follow each step in order. Do not skip or combine steps. Do not publish any stories; only generate and save drafts.
+This guide defines the step-by-step process for researching and reposting suitable content as an Instagram Story. Follow each step in order. Do not skip or combine steps. The final step is to repost the selected content as a story.
 
 ## Step 1: Research Instagram Posts by Hashtag
 
-- Search Instagram for recent posts using hashtags such as #35mm and other relevant tags from content_plan.md.
+- Do a single search on Instagram for recent posts, choose randomly one of hashtags such as #35mm, #retrotech and other relevant tags, you can figure out yourself from content_plan.md.
 - Collect a list of candidate posts.
 
 ## Step 2: Filter and Describe Candidate Photos
@@ -18,23 +18,23 @@ This guide defines the step-by-step process for generating a new Instagram Story
 - Choose one or two of the most suitable posts from the filtered list.
 - Record the original post links and descriptions.
 
-## Step 4: Prepare Story Draft
+## Step 4: Prepare Story for Repost
 
-- For each selected post, prepare a draft for reposting as a story.
+- For each selected post, prepare the content for reposting as a story.
 - Store the link to the original post/photo (do not download or generate any image).
-- Include a brief description (in Ukrainian) and credit the original author.
+- Include a brief description (caption) in Ukrainian, 2-3 words maximum, and you may include one hashtag.
+- Credit the original author.
 - Do not include any additional text or overlays on the image.
 
-## Step 5: Save Story Draft
+## Step 5: Repost to Instagram Story
 
-- Save the story draft with all required data (original post link, description, author credit).
-- Output the directory name of the saved draft. This is the story ID.
-- Do not publish the story at this stage.
+- Repost the selected content as an Instagram story with all required data (original post link, description, author credit).
 
 ---
 
 **Summary:**
 - Always follow steps in order.
-- Only output or save as instructed.
+- Only repost as instructed.
+- The caption must be 3-4 words maximum, in Ukrainian, and may include one hashtag.
 - Never generate images; only repost using the original post/photo link.
-- Never publish content unless explicitly instructed.
+- The final step is to publish the content as an Instagram story.
