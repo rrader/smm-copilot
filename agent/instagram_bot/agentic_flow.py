@@ -396,8 +396,10 @@ async def agentic_flow(text: str, context: dict, reply_message, reply_photo, aut
                 )
 
             # Second API call to get the final response after tool execution
-            response_message = client.chat.completions.parse(
+            response = client.chat.completions.parse(
                 model=model,
+                tools=tools_functions,
+                tool_choice="auto",
                 messages=context['chat_history'],
                 response_format=AgentResponse
             )
