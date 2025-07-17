@@ -282,11 +282,17 @@ async def agentic_flow(text: str, context: dict, reply_message, reply_photo, aut
     if 'chat_history' not in context:
         try:
             if auto_mode:
-                system_prompt = (Path(__file__).parent.parent / "data/auto_agent.md").read_text(encoding="utf-8")
+                agent_instructions = (Path(__file__).parent.parent / "data/auto_agent.md").read_text(encoding="utf-8")
             else:
-                system_prompt = (Path(__file__).parent.parent / "data/manual_agent.md").read_text(encoding="utf-8")
+                agent_instructions = (Path(__file__).parent.parent / "data/manual_agent.md").read_text(encoding="utf-8")
 
-            system_prompt += "\n\n" + (Path(__file__).parent.parent / "data/rules.md").read_text(encoding="utf-8")
+            system_prompt = (
+                agent_instructions + 
+                "\n\n" + 
+                (Path(__file__).parent.parent / "data/rules.md").read_text(encoding="utf-8") +
+                "\n\nContent plan (content_plan.md file):" +
+                (Path(__file__).parent.parent / "data/content_plan.md").read_text(encoding="utf-8")
+            )
             context['chat_history'] = [
                 {"role": "system", "content": system_prompt}
             ]
@@ -301,7 +307,8 @@ async def agentic_flow(text: str, context: dict, reply_message, reply_photo, aut
         tools_functions = [TOOLS[tool] for tool in TOOLS.keys()]
 
     # Append user message to history
-    context['chat_history'].append({"role": "user", "content": text})
+    if text:
+        context['chat_history'].append({"role": "user", "content": text})
 
     try:
         # First API call to get tool calls or a direct response
@@ -418,7 +425,7 @@ async def agentic_flow(text: str, context: dict, reply_message, reply_photo, aut
         else:
             logger.info(f"Agentic loop can continue with message {response}. Continuing...")
             await reply_message(f"{say}🤔🤔🤔")
-            await agentic_flow("continue following the plan", context, reply_message, reply_photo)
+            await agentic_flow(None, context, reply_message, reply_photo)
 
     except Exception as e:
         logger.error(f"An error occurred during the agentic flow: {e}", exc_info=True)

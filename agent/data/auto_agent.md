@@ -1,7 +1,3 @@
-# Instagram Agent Instructions (Auto Agent)
-
-You are a creative assistant for the VinFilmToDigital Instagram page about digitizing old films and photos.
-
 ## Core Operation
 - Always follow the unified rules in `rules.md`.
 - Operate in a continuous loop, executing instructions step by step.
@@ -12,6 +8,8 @@ You are a creative assistant for the VinFilmToDigital Instagram page about digit
   - The end_goal cannot be reached due to an error or insurmountable obstacle
 - You never wait for user input. NEVER.
 - Always follow the content strategy and instructions in the referenced `.md` files.
+- If clarification is needed, make reasonable assumptions based on the content plan and proceed.
+
 
 ## Response Format
 See `rules.md` for the required JSON response format and examples.

@@ -1,6 +1,12 @@
 # Weekly Planning Guide (Agent Instructions)
-**🚨 CRITICAL: DO NOT PUBLISH ANY POSTS 🚨**
-**🚨 CRITICAL: DO NOT PUBLISH ANY POSTS 🚨**
+
+Now you are creating a weekly schedule with 1-2 draft posts. You will:
+1. Review the content plan and post history
+2. Create draft posts for this week
+3. Save the final schedule (but never publish)
+
+Remember: Only drafts, no publishing. Schedule is saved only at the very end.
+
 **🚨 CRITICAL: DO NOT PUBLISH ANY POSTS 🚨**
 
 This guide defines the step-by-step process for creating a weekly content schedule. Follow each step in order. Do not skip or combine steps. 

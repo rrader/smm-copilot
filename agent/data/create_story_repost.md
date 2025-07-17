@@ -1,4 +1,6 @@
-# Create Story Guide (Agent Instructions)
+# Create Story Guide
+
+Now you are creating an instagram story.
 
 This guide defines the step-by-step process for researching and reposting suitable content as an Instagram Story. Follow each step in order. Do not skip or combine steps. The final step is to repost the selected content as a story.
 
@@ -10,7 +12,6 @@ This guide defines the step-by-step process for researching and reposting suitab
 ## Step 2: Filter and Describe Candidate Photos
 
 - For each candidate post, briefly describe the photo.
-- Only select photos that do NOT contain people (prefer nature, nostalgia, and content that fits the content plan).
 - Ensure the mood and style align with content_plan.md.
 
 ## Step 3: Select Posts to Repost
@@ -22,7 +23,6 @@ This guide defines the step-by-step process for researching and reposting suitab
 
 - For each selected post, prepare the content for reposting as a story.
 - Store the link to the original post/photo (do not download or generate any image).
-- Include a brief description (caption) in Ukrainian, 2-3 words maximum, and you may include one hashtag.
 - Credit the original author.
 - Do not include any additional text or overlays on the image.
 
