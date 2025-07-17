@@ -138,6 +138,7 @@ def _schedule_job(task_details):
             interval = schedule_info.get('interval', 1)
             job.unit = schedule_info['unit']
             job.interval = interval
+            job.latest = schedule_info.get('latest')
 
         if 'at' in schedule_info:
             job = job.at(schedule_info['at'], "Europe/Kyiv")
