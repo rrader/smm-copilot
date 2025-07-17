@@ -384,7 +384,7 @@ async def agentic_flow(text: str, context: dict, reply_message, reply_photo, aut
         if json_match:
             response = json.loads(json_match.group())
         else:
-            logger.warning("No JSON found in response, using raw response")
+            logger.warning("No JSON found in response, asking model to return a JSON response.")
             context['chat_history'].append({"role": "user", "content": "Please return a JSON response."})
 
             # Second API call to get the final response after tool execution
@@ -393,6 +393,7 @@ async def agentic_flow(text: str, context: dict, reply_message, reply_photo, aut
                 messages=context['chat_history'],
             )
             second_response_message = second_response.choices[0].message
+            print(">>>>>", second_response_message)
             context['chat_history'].append(second_response_message)
             response = second_response_message.content
 
