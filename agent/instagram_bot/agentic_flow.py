@@ -383,6 +383,13 @@ async def agentic_flow(text: str, context: dict, reply_message, reply_photo, aut
 
                 # Call the tool function
                 function_response = await function_to_call(**function_args, reply_message=reply_message, reply_photo=reply_photo)
+                try:
+                    # Try to parse as JSON and re-encode without escaping
+                    parsed = json.loads(function_response)
+                    function_response = json.dumps(parsed, ensure_ascii=False)
+                except json.JSONDecodeError:
+                    # Not JSON, leave as-is
+                    pass
                 await reply_message(f"🛠️💬 {function_name} {function_response[:100]}")
 
                 # Append tool response to history
@@ -398,8 +405,6 @@ async def agentic_flow(text: str, context: dict, reply_message, reply_photo, aut
             # Second API call to get the final response after tool execution
             response = client.chat.completions.parse(
                 model=model,
-                tools=tools_functions,
-                tool_choice="auto",
                 messages=context['chat_history'],
                 response_format=AgentResponse
             )
@@ -446,20 +451,25 @@ async def agentic_flow(text: str, context: dict, reply_message, reply_photo, aut
                 'pending': '📋'
             }
             def format_todo_item(item, indent=0):
-                emoji = status_emoji.get(item.get('status', 'pending'), '⏳')
-                desc = item.get('description', '')
-                comments = item.get('comments', '')
+                emoji = status_emoji.get(item.status)
+                desc = item.description
+                comments = item.comments
                 prefix = '  ' * indent
                 line = f"{prefix}{emoji} {desc}"
                 if comments:
                     line += f" — {comments}"
                 line += "\n"
                 # Handle sub_items recursively
-                sub_items = item.get('sub_items', [])
-                for sub_item in sub_items:
-                    line += format_todo_item(sub_item, indent + 1)
+                if isinstance(item, TodoItem):
+                    sub_items = item.sub_items
+                else:
+                    sub_items = []
+
+                if sub_items:
+                    for sub_item in sub_items:
+                        line += format_todo_item(sub_item, indent + 1)
                 return line
-            for item in response['todo_list']:
+            for item in response.todo_list:
                 say += format_todo_item(item)
 
         # Output any extra fields as raw JSON

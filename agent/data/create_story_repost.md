@@ -6,7 +6,7 @@ This guide defines the step-by-step process for researching and reposting suitab
 
 ## Step 1: Research Instagram Posts by Hashtag
 
-- Do a single search on Instagram for recent posts, choose randomly one of hashtags such as #35mm, #retrotech and other relevant tags, you can figure out yourself from content_plan.md.
+- Do a single search on Instagram for recent posts, choose randomly one of hashtags.
 - Collect a list of candidate posts.
 
 ## Step 2: Filter and Describe Candidate Photos
@@ -28,7 +28,7 @@ This guide defines the step-by-step process for researching and reposting suitab
 
 ## Step 5: Repost to Instagram Story
 
-- Repost the selected content as an Instagram story with all required data (original post link, description, author credit).
+- Repost the selected content as an Instagram story with all required data (original post link, caption, author credit).
 
 ---
 
