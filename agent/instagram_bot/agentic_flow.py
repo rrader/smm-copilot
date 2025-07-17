@@ -385,7 +385,16 @@ async def agentic_flow(text: str, context: dict, reply_message, reply_photo, aut
             response = json.loads(json_match.group())
         else:
             logger.warning("No JSON found in response, using raw response")
-            response = {"text_response": response}
+            context['chat_history'].append({"role": "user", "content": "Please return a JSON response."})
+
+            # Second API call to get the final response after tool execution
+            second_response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=context['chat_history'],
+            )
+            second_response_message = second_response.choices[0].message
+            context['chat_history'].append(second_response_message)
+            response = second_response_message.content
 
         say = f"🤖 {response['text_response']}\n"
         # Show end_goal if present
