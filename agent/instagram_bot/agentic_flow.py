@@ -6,6 +6,35 @@ from openai import OpenAI
 import asyncio
 from base64 import b64decode
 
+# --- Pydantic model for agent response ---
+from pydantic import BaseModel, Field, ValidationError
+from typing import List, Optional
+
+class SubTodoItem(BaseModel):
+    description: str
+    status: str
+    comments: Optional[str] = None
+    # No sub_items here; see data/rules.md for structure
+
+class TodoItem(BaseModel):
+    description: str
+    status: str
+    comments: Optional[str] = None
+    # sub_items is a flat list of SubTodoItem, not recursive (see data/rules.md)
+    sub_items: Optional[List[SubTodoItem]] = None
+
+class AgentResponse(BaseModel):
+    text_response: str
+    can_continue: bool
+    current_step: str
+    next_action: Optional[str] = None
+    end_goal: str
+    todo_list: List[TodoItem]
+    extra_data: Optional[str] = None
+
+# Enable recursive models
+TodoItem.update_forward_refs()
+
 from .config import OPENAI_API_KEY
 from . import instagram
 from . import image_utils
@@ -257,16 +286,16 @@ async def repost_photo(post_url: str, reply_message, reply_photo, caption: str =
 
 
 TOOLS = {
-    "get_history": {"type": "function", "function": {"name": "get_history", "description": "Retrieves the history of previously published posts. Never call this tool unless you are sure you need it."}},
-    "read_data_file": {"type": "function", "function": {"name": "read_data_file", "description": "Reads the content of a specified file. Useful for accessing the .md files, content plan or other files. Only files directly in 'data' are allowed (no subdirectories).", "parameters": {"type": "object", "properties": {"file_name": {"type": "string", "description": "The name of the file to read from the 'data' directory."}}, "required": ["file_name"]}}},
-    "save_schedule": {"type": "function", "function": {"name": "save_schedule", "description": "Saves the generated schedule to 'data/schedule/generated.json'. To run post on specific day, unit should be `weeks`", "parameters": {"type": "object", "properties": {"schedule_data": {"type": "array", "items": {"type": "object", "properties": {"task_name": {"type": "string"}, "schedule": {"type": "object", "properties": {"unit": {"type": "string"}, "day": {"type": "string"}, "at": {"type": "string"}}}, "task_args": {"type": "object"}}}, "description": "A list of schedule entries to save. Put schedule data in the following format: [{\"task_name\": \"task_post\", \"schedule\": {\"unit\": \"weeks\", \"day\": \"monday\", \"at\": \"12:00\"}, \"task_args\": {\"post_directory_name\": \"...\"}}, {\"task_name\": \"task_story\", \"schedule\": {\"unit\": \"weeks\", \"day\": \"tuesday\", \"at\": \"15:00\"}, \"task_args\": {\"story_directory_name\": \"...\"}}]"}}, "required": ["schedule_data"]}}},
-    "generate_post_image": {"type": "function", "function": {"name": "generate_post_image", "description": "Generates an image for an Instagram post based on the post text. Response contains the path to the image file.", "parameters": {"type": "object", "properties": {"image_prompt": {"type": "string", "description": "The prompt for the image generation model."}}, "required": ["image_prompt"]}}},
-    "save_post_draft": {"type": "function", "function": {"name": "save_post_draft", "description": "Saves a generated post (idea, text, and image) as a draft for review. Never call this tool if you didn't generate the image first.", "parameters": {"type": "object", "properties": {"idea": {"type": "string"}, "post_text": {"type": "string"}, "image_path": {"type": "string"}}, "required": ["idea", "post_text", "image_path"]}}},
-    "publish_post": {"type": "function", "function": {"name": "publish_post", "description": "Publishes a staged post draft to Instagram. Never call this tool if you didn't save the post draft first. Also, never call this tool if you don't have an explicit confirmation from user that they want to publish the post.", "parameters": {"type": "object", "properties": {"post_directory_name": {"type": "string", "description": "The name of the post directory inside 'data/future_posts' to publish."}}, "required": ["post_directory_name"]}}},
-    "list_drafted_posts": {"type": "function", "function": {"name": "list_drafted_posts", "description": "Lists all previously drafted posts that are pending for review or publishing."}},
-    "search_posts_by_hashtag": {"type": "function", "function": {"name": "search_posts_by_hashtag", "description": "Searches for 10 posts on Instagram by a given hashtag. It returns a list of posts, with likes, text, image url, and comments number.", "parameters": {"type": "object", "properties": {"hashtag": {"type": "string", "description": "The hashtag to search for, without the '#' symbol."}, "amount": {"type": "integer", "description": "The number of posts to search for."}}, "required": ["hashtag"]}}},
-    "describe_image": {"type": "function", "function": {"name": "describe_image", "description": "Describes an image from a URL.", "parameters": {"type": "object", "properties": {"image_url": {"type": "string", "description": "The URL of the image to describe. Make sure it's a full url with all parameters, absolutely same as returned by other tools."}, "question": {"type": "string", "description": "The question to ask about the image."}}, "required": ["image_url", "question"]}}},
-    "repost_photo": {"type": "function", "function": {"name": "repost_photo", "description": "Reposts a photo to story from a given instagram post URL.", "parameters": {"type": "object", "properties": {"post_url": {"type": "string", "description": "The URL of the post to repost."}, "caption": {"type": "string", "description": "The caption for the reposted photo."}}, "required": ["post_url", "caption"]}}},
+    "get_history": {"type": "function", "function": {"name": "get_history", "description": "Retrieves the history of previously published posts. Never call this tool unless you are sure you need it.", "strict": True, "parameters": {"type": "object", "properties": {}, "additionalProperties": False}}},
+    "read_data_file": {"type": "function", "function": {"name": "read_data_file", "description": "Reads the content of a specified file. Useful for accessing the .md files, content plan or other files. Only files directly in 'data' are allowed (no subdirectories).", "strict": True, "parameters": {"type": "object", "properties": {"file_name": {"type": "string", "description": "The name of the file to read from the 'data' directory."}}, "additionalProperties": False, "required": ["file_name"]}}},
+    "save_schedule": {"type": "function", "function": {"name": "save_schedule", "description": "Saves the generated schedule to 'data/schedule/generated.json'. To run post on specific day, unit should be `weeks`", "strict": True, "parameters": {"type": "object", "additionalProperties": False, "properties": {"schedule_data": {"type": "array", "items": {"type": "object",  "additionalProperties": False, "required": ["task_name", "schedule", "task_args"], "properties": {"task_name": {"type": "string"}, "schedule": {"type": "object", "additionalProperties": False, "required": ["unit", "day", "at"], "properties": {"unit": {"type": "string"}, "day": {"type": "string"}, "at": {"type": "string"}}}, "task_args": {"type": "object", "additionalProperties": False, "required": ["post_directory_name"], "properties": {"post_directory_name": {"type": "string"}}}}}, "description": "A list of schedule entries to save. Put schedule data in the following format: [{\"task_name\": \"task_post\", \"schedule\": {\"unit\": \"weeks\", \"day\": \"monday\", \"at\": \"12:00\"}, \"task_args\": {\"post_directory_name\": \"...\"}}, {\"task_name\": \"task_story\", \"schedule\": {\"unit\": \"weeks\", \"day\": \"tuesday\", \"at\": \"15:00\"}, \"task_args\": {\"story_directory_name\": \"...\"}}]"}}, "additionalProperties": False, "required": ["schedule_data"]}}},
+    "generate_post_image": {"type": "function", "function": {"name": "generate_post_image", "description": "Generates an image for an Instagram post based on the post text. Response contains the path to the image file.", "strict": True, "parameters": {"type": "object", "properties": {"image_prompt": {"type": "string", "description": "The prompt for the image generation model."}}, "additionalProperties": False, "required": ["image_prompt"]}}},
+    "save_post_draft": {"type": "function", "function": {"name": "save_post_draft", "description": "Saves a generated post (idea, text, and image) as a draft for review. Never call this tool if you didn't generate the image first.", "strict": True, "parameters": {"type": "object", "properties": {"idea": {"type": "string"}, "post_text": {"type": "string"}, "image_path": {"type": "string"}}, "additionalProperties": False, "required": ["idea", "post_text", "image_path"]}}},
+    "publish_post": {"type": "function", "function": {"name": "publish_post", "description": "Publishes a staged post draft to Instagram. Never call this tool if you didn't save the post draft first. Also, never call this tool if you don't have an explicit confirmation from user that they want to publish the post.", "strict": True, "parameters": {"type": "object", "properties": {"post_directory_name": {"type": "string", "description": "The name of the post directory inside 'data/future_posts' to publish."}}, "additionalProperties": False, "required": ["post_directory_name"]}}},
+    "list_drafted_posts": {"type": "function", "function": {"name": "list_drafted_posts", "description": "Lists all previously drafted posts that are pending for review or publishing.", "strict": True, "parameters": {"type": "object", "properties": {}, "additionalProperties": False}}},
+    "search_posts_by_hashtag": {"type": "function", "function": {"name": "search_posts_by_hashtag", "description": "Searches for 10 posts on Instagram by a given hashtag. It returns a list of posts, with likes, text, image url, and comments number.", "strict": True, "parameters": {"type": "object", "properties": {"hashtag": {"type": "string", "description": "The hashtag to search for, without the '#' symbol."}, "amount": {"type": "integer", "description": "The number of posts to search for."}}, "additionalProperties": False, "required": ["hashtag", "amount"]}}},
+    "describe_image": {"type": "function", "function": {"name": "describe_image", "description": "Describes an image from a URL.", "strict": True, "parameters": {"type": "object", "properties": {"image_url": {"type": "string", "description": "The URL of the image to describe. Make sure it's a full url with all parameters, absolutely same as returned by other tools."}, "question": {"type": "string", "description": "The question to ask about the image."}}, "additionalProperties": False, "required": ["image_url", "question"]}}},
+    "repost_photo": {"type": "function", "function": {"name": "repost_photo", "description": "Reposts a photo to story from a given instagram post URL.", "strict": True, "parameters": {"type": "object", "properties": {"post_url": {"type": "string", "description": "The URL of the post to repost."}, "caption": {"type": "string", "description": "The caption for the reposted photo."}}, "additionalProperties": False, "required": ["post_url", "caption"]}}},
 }
 
 async def agentic_flow(text: str, context: dict, reply_message, reply_photo, auto_mode: bool = False, tools: list = None, model: str = "gpt-4o-mini"):
@@ -312,18 +341,20 @@ async def agentic_flow(text: str, context: dict, reply_message, reply_photo, aut
 
     try:
         # First API call to get tool calls or a direct response
-        response = client.chat.completions.create(
+        # See data/rules.md and AgentResponse (Pydantic) for required response format
+        response = client.chat.completions.parse(
             model=model,
             messages=context['chat_history'],
             tools=tools_functions,
             tool_choice="auto",
+            response_format=AgentResponse
         )
 
         response_message = response.choices[0].message
         context['chat_history'].append(response_message)
 
         # If the model wants to call tools
-        if response_message.tool_calls:
+        while response_message.tool_calls:
             tool_calls = response_message.tool_calls
             available_tools = {
                 "get_history": get_history,
@@ -365,49 +396,52 @@ async def agentic_flow(text: str, context: dict, reply_message, reply_photo, aut
                 )
 
             # Second API call to get the final response after tool execution
-            second_response = client.chat.completions.create(
-                model="gpt-4o-mini",
+            response_message = client.chat.completions.parse(
+                model=model,
                 messages=context['chat_history'],
+                tools=tools_functions,
+                tool_choice="auto",
+                response_format={
+                    "type": "json_object",
+                    "schema": AgentResponse.model_json_schema()
+                }
             )
-            second_response_message = second_response.choices[0].message
-            context['chat_history'].append(second_response_message)
-            response = second_response_message.content
+            response_message = response.choices[0].message
+            context['chat_history'].append(response_message)
+            print(">>>>>", response_message.content)
 
-        else:
-            # If no tool calls, just send the response
-            response = response_message.content
-        
+        # If no tool calls, just send the response
+        response = response_message.content
+
         print(">>>>>", response)
-        # Find JSON content in the response using regex, handling multiline JSON
-        import re
-        json_match = re.search(r'\{.*\}', response, re.DOTALL)
-        if json_match:
-            response = json.loads(json_match.group())
-        else:
-            logger.warning("No JSON found in response, asking model to return a JSON response.")
-            context['chat_history'].append({"role": "user", "content": "Please return a JSON response."})
+        # # Find JSON content in the response using regex, handling multiline JSON
+        # import re
+        # json_match = re.search(r'\{.*\}', response, re.DOTALL)
+        # if json_match:
+        #     try:
+        #         parsed = json.loads(json_match.group())
+        #         agent_response = AgentResponse.parse_obj(parsed)
+        #         response = agent_response.dict()
+        #     except (json.JSONDecodeError, ValidationError) as e:
+        #         logger.error(f"Response validation error: {e}")
+        #         await reply_message(f"Response validation error: {e}")
+        #         return context
+        # else:
+        #     logger.warning("No JSON found in response.")
+        #     response = {"text_response": response}
+        response = response_message.parsed
 
-            # Second API call to get the final response after tool execution
-            second_response = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=context['chat_history'],
-            )
-            second_response_message = second_response.choices[0].message
-            print(">>>>>", second_response_message)
-            context['chat_history'].append(second_response_message)
-            response = second_response_message.content
-
-        say = f"🤖 {response['text_response']}\n"
+        say = f"🤖 {response.text_response}\n"
         # Show end_goal if present
-        if 'end_goal' in response and response['end_goal']:
-            say += f"🎯 End Goal: {response['end_goal']}\n"
-        if 'current_step' in response:
-            say += f"🔍 {response['current_step']}\n"
-        if 'next_action' in response:
-            say += f"🔍 {response['next_action']}\n"
+        if response.end_goal:
+            say += f"🎯 End Goal: {response.end_goal}\n"
+        if response.current_step:
+            say += f"🔍 {response.current_step}\n"
+        if response.next_action:
+            say += f"🔍 {response.next_action}\n"
 
         # Add todo_list output with emoji for status
-        if 'todo_list' in response and response['todo_list']:
+        if response.todo_list:
             say += "\n📝 To-Do List:\n"
             status_emoji = {
                 'done': '✅',
@@ -432,13 +466,12 @@ async def agentic_flow(text: str, context: dict, reply_message, reply_photo, aut
                 say += format_todo_item(item)
 
         # Output any extra fields as raw JSON
-        extra_fields = {k: v for k, v in response.items() if k not in ['text_response', 'end_goal', 'current_step', 'next_action', 'todo_list', 'can_continue']}
-        if extra_fields:
+        if response.extra_data:
             say += "\n📦 Additional Data:\n"
-            say += json.dumps(extra_fields, indent=2)
+            say += response.extra_data
             say += "\n"
 
-        if 'can_continue' not in response or not response['can_continue']:
+        if not response.can_continue:
             await reply_message(say)
         else:
             logger.info(f"Agentic loop can continue with message {response}. Continuing...")
