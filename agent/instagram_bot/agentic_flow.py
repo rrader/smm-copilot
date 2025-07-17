@@ -348,10 +348,11 @@ async def agentic_flow(text: str, context: dict, reply_message, reply_photo, aut
 
                 function_args = json.loads(tool_call.function.arguments)
                 logger.info(f"Calling tool `{function_name}` with arguments: {function_args}")
-                await reply_message(f"🛠️ {function_name} {function_args}")
+                await reply_message(f"🛠️❓ {function_name} {function_args}")
 
                 # Call the tool function
                 function_response = await function_to_call(**function_args, reply_message=reply_message, reply_photo=reply_photo)
+                await reply_message(f"🛠️💬 {function_name} {function_response}")
 
                 # Append tool response to history
                 context['chat_history'].append(
@@ -419,6 +420,13 @@ async def agentic_flow(text: str, context: dict, reply_message, reply_photo, aut
                 return line
             for item in response['todo_list']:
                 say += format_todo_item(item)
+
+        # Output any extra fields as raw JSON
+        extra_fields = {k: v for k, v in response.items() if k not in ['text_response', 'end_goal', 'current_step', 'next_step', 'todo_list', 'can_continue']}
+        if extra_fields:
+            say += "\n📦 Additional Data:\n"
+            say += json.dumps(extra_fields, indent=2)
+            say += "\n"
 
         if 'can_continue' not in response or not response['can_continue']:
             await reply_message(say)
