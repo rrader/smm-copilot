@@ -399,8 +399,6 @@ async def agentic_flow(text: str, context: dict, reply_message, reply_photo, aut
             response_message = client.chat.completions.parse(
                 model=model,
                 messages=context['chat_history'],
-                tools=tools_functions,
-                tool_choice="auto",
                 response_format=AgentResponse
             )
             response_message = response.choices[0].message
