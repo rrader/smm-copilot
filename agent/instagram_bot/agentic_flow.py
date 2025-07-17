@@ -352,7 +352,7 @@ async def agentic_flow(text: str, context: dict, reply_message, reply_photo, aut
 
                 # Call the tool function
                 function_response = await function_to_call(**function_args, reply_message=reply_message, reply_photo=reply_photo)
-                await reply_message(f"🛠️💬 {function_name} {function_response}")
+                await reply_message(f"🛠️💬 {function_name} {function_response[:100]}")
 
                 # Append tool response to history
                 context['chat_history'].append(
@@ -393,8 +393,8 @@ async def agentic_flow(text: str, context: dict, reply_message, reply_photo, aut
             say += f"🎯 End Goal: {response['end_goal']}\n"
         if 'current_step' in response:
             say += f"🔍 {response['current_step']}\n"
-        if 'next_step' in response:
-            say += f"🔍 {response['next_step']}\n"
+        if 'next_action' in response:
+            say += f"🔍 {response['next_action']}\n"
 
         # Add todo_list output with emoji for status
         if 'todo_list' in response and response['todo_list']:
@@ -422,7 +422,7 @@ async def agentic_flow(text: str, context: dict, reply_message, reply_photo, aut
                 say += format_todo_item(item)
 
         # Output any extra fields as raw JSON
-        extra_fields = {k: v for k, v in response.items() if k not in ['text_response', 'end_goal', 'current_step', 'next_step', 'todo_list', 'can_continue']}
+        extra_fields = {k: v for k, v in response.items() if k not in ['text_response', 'end_goal', 'current_step', 'next_action', 'todo_list', 'can_continue']}
         if extra_fields:
             say += "\n📦 Additional Data:\n"
             say += json.dumps(extra_fields, indent=2)
