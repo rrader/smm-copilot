@@ -401,10 +401,7 @@ async def agentic_flow(text: str, context: dict, reply_message, reply_photo, aut
                 messages=context['chat_history'],
                 tools=tools_functions,
                 tool_choice="auto",
-                response_format={
-                    "type": "json_object",
-                    "schema": AgentResponse.model_json_schema()
-                }
+                response_format=AgentResponse
             )
             response_message = response.choices[0].message
             context['chat_history'].append(response_message)
