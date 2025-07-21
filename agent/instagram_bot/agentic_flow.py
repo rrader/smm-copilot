@@ -289,12 +289,13 @@ async def post_poll(caption: str, options: list[str], reply_message, reply_photo
     """
     Reposts a photo to story from a given instagram post URL.
     """
-    try:
-        instagram.post_story_poll(caption=caption, options=options)
-        return "Poll successfully posted to story."
-    except Exception as e:
-        logger.error(f"Error posting poll: {e}", exc_info=True)
-        return f"An error occurred while posting the poll: {e}"
+    # try:
+    #     instagram.post_story_poll(caption=caption, options=options)
+    #     return "Poll successfully posted to story."
+    # except Exception as e:
+    #     logger.error(f"Error posting poll: {e}", exc_info=True)
+    #     return f"An error occurred while posting the poll: {e}"
+    raise NotImplementedError("Poll posting is not implemented yet.")
 
 
 TOOLS = {
