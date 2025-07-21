@@ -1,6 +1,6 @@
 python-telegram-bot
 python-dotenv
-instagrapi
+instagrapi==2.1.3
 Pillow==9.5.0
 openai
 httpx

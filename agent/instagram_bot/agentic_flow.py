@@ -278,11 +278,23 @@ async def repost_photo(post_url: str, reply_message, reply_photo, caption: str =
     Reposts a photo to story from a given instagram post URL.
     """
     try:
-        instagram.post_repost_photo(post_url, caption=caption)
+        instagram.post_story_repost_photo(post_url, caption=caption)
         return "Photo successfully reposted to story."
     except Exception as e:
         logger.error(f"Error reposting photo: {e}", exc_info=True)
         return f"An error occurred while reposting the photo: {e}"
+
+
+async def post_poll(caption: str, options: list[str], reply_message, reply_photo):
+    """
+    Reposts a photo to story from a given instagram post URL.
+    """
+    try:
+        instagram.post_story_poll(caption=caption, options=options)
+        return "Poll successfully posted to story."
+    except Exception as e:
+        logger.error(f"Error posting poll: {e}", exc_info=True)
+        return f"An error occurred while posting the poll: {e}"
 
 
 TOOLS = {
@@ -294,8 +306,9 @@ TOOLS = {
     "publish_post": {"type": "function", "function": {"name": "publish_post", "description": "Publishes a staged post draft to Instagram. Never call this tool if you didn't save the post draft first. Also, never call this tool if you don't have an explicit confirmation from user that they want to publish the post.", "strict": True, "parameters": {"type": "object", "properties": {"post_directory_name": {"type": "string", "description": "The name of the post directory inside 'data/future_posts' to publish."}}, "additionalProperties": False, "required": ["post_directory_name"]}}},
     "list_drafted_posts": {"type": "function", "function": {"name": "list_drafted_posts", "description": "Lists all previously drafted posts that are pending for review or publishing.", "strict": True, "parameters": {"type": "object", "properties": {}, "additionalProperties": False}}},
     "search_posts_by_hashtag": {"type": "function", "function": {"name": "search_posts_by_hashtag", "description": "Searches for 10 posts on Instagram by a given hashtag. It returns a list of posts, with likes, text, image url, and comments number.", "strict": True, "parameters": {"type": "object", "properties": {"hashtag": {"type": "string", "description": "The hashtag to search for, without the '#' symbol."}, "amount": {"type": "integer", "description": "The number of posts to search for."}}, "additionalProperties": False, "required": ["hashtag", "amount"]}}},
-    "describe_image": {"type": "function", "function": {"name": "describe_image", "description": "Describes an image from a URL.", "strict": True, "parameters": {"type": "object", "properties": {"image_url": {"type": "string", "description": "The URL of the image to describe. Make sure it's a full url with all parameters, absolutely same as returned by other tools."}, "question": {"type": "string", "description": "The question to ask about the image."}}, "additionalProperties": False, "required": ["image_url", "question"]}}},
+    "describe_image": {"type": "function", "function": {"name": "describe_image", "description": "Describes an image from a URL (image_url). Note that instagram post link like https://www.instagram.com/p/... is NOT an image.", "strict": True, "parameters": {"type": "object", "properties": {"image_url": {"type": "string", "description": "The URL of the image to describe. Make sure it's a full url with all parameters, absolutely same as returned by other tools."}, "question": {"type": "string", "description": "The question to ask about the image."}}, "additionalProperties": False, "required": ["image_url", "question"]}}},
     "repost_photo": {"type": "function", "function": {"name": "repost_photo", "description": "Reposts a photo to story from a given instagram post URL.", "strict": True, "parameters": {"type": "object", "properties": {"post_url": {"type": "string", "description": "The URL of the post to repost."}, "caption": {"type": "string", "description": "The caption for the reposted photo."}}, "additionalProperties": False, "required": ["post_url", "caption"]}}},
+    "post_poll": {"type": "function", "function": {"name": "post_poll", "description": "Posts a poll to story with a given caption and options. The input should be a list of options.", "strict": True, "parameters": {"type": "object", "properties": {"caption": {"type": "string", "description": "The caption for the poll."}, "options": {"type": "array", "items": {"type": "string"}, "description": "The options for the poll."}}, "additionalProperties": False, "required": ["caption", "options"]}}},
 }
 
 async def agentic_flow(text: str, context: dict, reply_message, reply_photo, auto_mode: bool = False, tools: list = None, model: str = "gpt-4o-mini"):
@@ -367,6 +380,7 @@ async def agentic_flow(text: str, context: dict, reply_message, reply_photo, aut
                 "search_posts_by_hashtag": search_posts_by_hashtag,
                 "describe_image": describe_image,
                 "repost_photo": repost_photo,
+                "post_poll": post_poll,
             }
 
             for tool_call in tool_calls:

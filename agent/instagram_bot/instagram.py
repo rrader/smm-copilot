@@ -1,10 +1,12 @@
 import logging
 import os
+import tempfile
 from pathlib import Path
 from instagrapi import Client
 from instagrapi.exceptions import LoginRequired
-from instagrapi.types import StoryMention, StoryMedia, StoryLink
+from instagrapi.types import StoryMention, StoryMedia, StoryLink, StoryPoll
 from instagrapi.story import StoryBuilder
+from moviepy.editor import ImageClip
 from .config import INSTAGRAM_USERNAME, INSTAGRAM_PASSWORD
 import re
 from datetime import datetime
@@ -184,7 +186,7 @@ def search_posts_by_hashtag(hashtag: str, amount: int = 5):
     return posts
 
 
-def post_repost_photo(post_url: str, caption: str = ""):
+def post_story_repost_photo(post_url: str, caption: str = ""):
     """
     Reposts a photo from a given URL.
     """
@@ -205,5 +207,19 @@ def post_repost_photo(post_url: str, caption: str = ""):
         buildout.path, 
         caption=caption,
         medias=[StoryMedia(media_pk=media_pk, x=0.5, y=0.5, width=0.6, height=0.8)]
+    )
+    return True
+
+
+def post_story_poll(caption: str = "", options: list[str] = []):
+    """
+    Posts a poll to story.
+    """
+    cl = get_instagram_client()
+
+    cl.photo_upload_to_story(
+        caption=caption,
+        path='data/background1.png', 
+        polls=[StoryPoll(x = 0.5, y = 0.5, width = 1.0, height = 0.7, question = "", options = options)],
     )
     return True
