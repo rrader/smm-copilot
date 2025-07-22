@@ -1,9 +1,0 @@
-openai
-requests
-python-dotenv
-Pillow
-opencv-python
-
-# app
-kivy[base]
-kivymd==2.0.1dev0
