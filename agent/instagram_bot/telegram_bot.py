@@ -10,6 +10,7 @@ import schedule
 from .config import TELEGRAM_TOKEN, ADMIN_TELEGRAM_ID, SAVED_PROMPTS
 from .instagram import make_post
 from .agentic_flow import agentic_flow
+from .news_monitor import news_monitoring_task
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +53,7 @@ Available commands:
 /list_future - List scheduled future posts
 /delete_future_post <post_dir_name> - Delete a scheduled future post
 /post <post_dir_name> - Post a future post to Instagram
+/news_monitoring - Show the news monitoring task
 """
     await update.message.reply_text(help_text)
 
@@ -225,6 +227,17 @@ async def run_saved_flow(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         reply_message, reply_photo, auto_mode=False
     )
 
+@admin_only
+async def news_monitoring(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    logger.info(f"Received /news_monitoring command from {update.effective_user.name}")
+    async def reply_message(message: str) -> None:
+        await update.message.reply_text(message)
+    
+    async def reply_photo(photo_path: str) -> None:
+        await update.message.reply_photo(photo=open(photo_path, "rb"))
+    
+    await news_monitoring_task(reply_message, reply_photo)
+    await update.message.reply_text("News monitoring task completed.")
 
 @admin_only
 async def reload_all_tasks(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -255,5 +268,6 @@ def run_bot():
     application.add_handler(CommandHandler("schedule", schedule_command))
     application.add_handler(CommandHandler("reload_all_tasks", reload_all_tasks))
     application.add_handler(CommandHandler("run_saved_flow", run_saved_flow))
+    application.add_handler(CommandHandler("news_monitoring", news_monitoring))
 
     application.run_polling()

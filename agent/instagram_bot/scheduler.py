@@ -7,6 +7,7 @@ from .instagram import make_post
 from .agentic_flow import agentic_flow
 from .telegram_bot import APPLICATION
 from .config import ADMIN_TELEGRAM_ID, SAVED_PROMPTS
+from .news_monitor import news_monitoring_task
 import asyncio
 
 # --- Utility functions for sending messages to admin ---
@@ -47,6 +48,11 @@ def publish_story_task(**kwargs):
     """Placeholder for the publish story task."""
     logger.info(f"Running publish_story_task with args: {kwargs}")
     return schedule.CancelJob
+
+def news_monitoring_job(**kwargs):
+    """News monitoring job that analyzes current events and provides content recommendations."""
+    logger.info("Running news monitoring job")
+    asyncio.run(news_monitoring_task(reply_message, reply_photo))
 
 def reload_all_tasks():
     """
@@ -89,6 +95,7 @@ TASKS = {
     "execute_agentic_flow": execute_agentic_flow,
     "task_post": publish_post_task,
     "task_story": publish_story_task,
+    "news_monitoring": news_monitoring_job,
     "reload_all_tasks": reload_all_tasks,
 }
 
@@ -96,6 +103,7 @@ TASKS_VALIDATION = {
     "execute_agentic_flow": validate_generic_task,
     "task_post": validate_publish_post_task,
     "task_story": validate_generic_task,
+    "news_monitoring": validate_generic_task,
     "reload_all_tasks": validate_generic_task,
 }
 

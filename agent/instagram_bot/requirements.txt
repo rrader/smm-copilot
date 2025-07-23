@@ -8,3 +8,5 @@ schedule
 pytz
 moviepy==1.0.3
 opencv-python
+feedparser
+requests
